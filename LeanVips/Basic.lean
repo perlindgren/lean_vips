@@ -41,6 +41,7 @@ def lw   (rt rs: Reg) (imm16: Bv16): Instr := .i .lw   rt rs imm16
 def sw   (rt rs: Reg) (imm16: Bv16): Instr := .i .sw   rt rs imm16
 def beq  (rt rs: Reg) (imm16: Bv16): Instr := .i .beq  rt rs imm16
 def bne' (rt rs: Reg) (imm16: Bv16): Instr := .i .bne  rt rs imm16
+def j                 (imm26: Bv26): Instr := .j             imm26
 
 -- Instruction memory
 abbrev IMem : Type := Array Instr
@@ -86,22 +87,21 @@ def eval (im: IMem) (fuel: Nat) (pc: Bv32) (rf:Regfile) (dm: DMem): Regfile × D
         | .lw   => rf.w rt (dm.r (a + imm16.signExtend _))
         | _     => unreachable!
         , dm, pc)
-      | .j _imm26 => panic!("not implemented")
+      | .j imm26 => (rf, dm, (pc &&& 0xF000_0000: Bv32) ||| (imm26.zeroExtend _ <<< 2) - 4)
     eval im fu (pc + 4) rf dm
 
 def pc : Bv32 := 4
 def rf: Regfile := Vector.mkVector 32 0
 def imem : IMem := #[
-  bne'  t2 t2 1,
-  addi t0 t0 0x20,
-  addi t1 t0 (-1),
-  slt  t2 t0 t1,
-  slt  t3 t1 t0
+  bne' t1 zero 4,    --00 -- if t1 != 0 brach to 14
+  addi t0 t0 0x20,   --04
+  addi t1 t0 (-1),   --08
+  slt  t2 t0 t1,     --0c
+  j    0,            --10 -- jump to address 0
+  slt  t3 t1 t0,     --14
+  andi t4 t3 0xFFFF, --18
+  ori  t5 t3 0xFFFF  --20
 ]
 def dm : DMem := #[]
 
-#eval (eval imem 4 0 rf dm)
--- #eval ((eval imem 4 0 rf dm)[t1.toNat])
--- #eval ((eval imem 4 0 rf dm)[t2.toNat])
--- #eval ((eval imem 4 0 rf dm)[t3.toNat])
--- #eval ((eval imem 5 0 rf dm)[t3.toNat])
+#eval (eval imem 9 0 rf dm)
