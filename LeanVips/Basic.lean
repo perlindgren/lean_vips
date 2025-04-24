@@ -28,6 +28,8 @@ inductive Instr where
   | j (imm26: Bv26) : Instr
 deriving Repr, Inhabited
 
+namespace LeanVips
+
 -- Instruction shorthands
 def and  (rd rs rt: Reg) : Instr := .r .and rd rs rt
 def or   (rd rs rt: Reg) : Instr := .r .or  rd rs rt
@@ -40,7 +42,7 @@ def slti (rt rs: Reg) (imm16: Bv16): Instr := .i .slti rt rs imm16
 def lw   (rt rs: Reg) (imm16: Bv16): Instr := .i .lw   rt rs imm16
 def sw   (rt rs: Reg) (imm16: Bv16): Instr := .i .sw   rt rs imm16
 def beq  (rt rs: Reg) (imm16: Bv16): Instr := .i .beq  rt rs imm16
-def bne' (rt rs: Reg) (imm16: Bv16): Instr := .i .bne  rt rs imm16
+def bne  (rt rs: Reg) (imm16: Bv16): Instr := .i .bne  rt rs imm16
 def j                 (imm26: Bv26): Instr := .j             imm26
 
 -- Instruction memory
@@ -93,7 +95,7 @@ def eval (im: IMem) (fuel: Nat) (pc: Bv32) (rf:Regfile) (dm: DMem): Regfile × D
 def pc : Bv32 := 4
 def rf: Regfile := Vector.mkVector 32 0
 def imem : IMem := #[
-  bne' t1 zero 4,    --00 -- if t1 != 0 brach to 14
+  bne  t1 zero 4,    --00 -- if t1 != 0 brach to 14
   addi t0 t0 0x20,   --04
   addi t1 t0 (-1),   --08
   slt  t2 t0 t1,     --0c
