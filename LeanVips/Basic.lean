@@ -115,7 +115,7 @@ theorem tofrom (i: Instr) : fromBv32 (toBv32 i) = i := by
   cases i
   . rename_i instr rs rt imm
     sorry
-  . -- rename_i instr rs rt rd
+  . rename_i instr _rs _rt _rd
     split
     . rename_i heq
       rw [heq]
@@ -222,7 +222,9 @@ theorem tofrom (i: Instr) : fromBv32 (toBv32 i) = i := by
         bv_decide
       rw [h_rd, h_rt, h_rs]
       rfl
-    . sorry
+    . rename_i heq
+      rw [heq]
+      sorry
     . sorry
     . sorry
     . sorry
