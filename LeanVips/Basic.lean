@@ -108,7 +108,34 @@ def toBv32 (instr: Instr) : Bv32 :=
 #eval (fromBv32 (toBv32 (sub t0 t1 t2)))
 #eval (fromBv32 (toBv32 (slt t0 t1 t2)))
 
--- theorem opshift ()S
+-- theorem helpers
+theorem i_op : ∀ (op : Op) (rs rt : Reg) (imm: Bv16),
+  BitVec.setWidth 6 ((op ++ rs ++ rt ++ imm) >>> 26) = op := by
+  bv_decide
+theorem i_rs : ∀ (op : Op) (rs rt : Reg) (imm: Bv16),
+  BitVec.setWidth 5 ((op ++ rs ++ rt ++ imm) >>> 21) = rs := by
+  bv_decide
+theorem i_rt : ∀ (op : Op) (rs rt : Reg) (imm: Bv16),
+  BitVec.setWidth 5 ((op ++ rs ++ rt ++ imm) >>> 16) = rt := by
+  bv_decide
+theorem i_imm : ∀ (op : Op) (rs rt : Reg) (imm: Bv16),
+  BitVec.setWidth 16 ((op ++ rs ++ rt ++ imm)) = imm := by
+  bv_decide
+theorem r_op : ∀ (op : Op) (rs rt rd: Reg) (shamt: Shamt) (funct: Funct),
+  BitVec.setWidth 6 ((op ++ rs ++ rt ++ rd ++ shamt ++ funct) >>> 26) = op := by
+  bv_decide
+theorem r_rs : ∀ (op : Op) (rs rt rd: Reg) (shamt: Shamt) (funct: Funct),
+  BitVec.setWidth 5 ((op ++ rs ++ rt ++ rd ++ shamt ++ funct) >>> 21) = rs := by
+  bv_decide
+theorem r_rt : ∀ (op : Op) (rs rt rd: Reg) (shamt: Shamt) (funct: Funct),
+  BitVec.setWidth 5 ((op ++ rs ++ rt ++ rd ++ shamt ++ funct) >>> 16) = rt := by
+  bv_decide
+theorem r_rd : ∀ (op : Op) (rs rt rd: Reg) (shamt: Shamt) (funct: Funct),
+  BitVec.setWidth 5 ((op ++ rs ++ rt ++ rd ++ shamt ++ funct) >>> 11) = rd := by
+  bv_decide
+theorem r_funct : ∀ (op : Op) (rs rt rd: Reg) (shamt: Shamt) (funct: Funct),
+  BitVec.setWidth 6 (op ++ rs ++ rt ++ rd ++ shamt ++ funct) = funct := by
+  bv_decide
 
 theorem tofrom (i: Instr) : fromBv32 (toBv32 i) = i := by
   simp [toBv32]
@@ -129,247 +156,124 @@ theorem tofrom (i: Instr) : fromBv32 (toBv32 i) = i := by
       rw [heq]
       unfold fromBv32
       simp
-      have h_op: BitVec.setWidth 6 ((12#6 ++ rs ++ rt ++ imm16) >>> 26) = 12 := by
-        bv_decide
-      rw [h_op]
+      rw [i_op]
       simp
-      have h_rt: BitVec.setWidth 5 ((12#6 ++ rs ++ rt ++ imm16) >>> 16) = rt := by
-        bv_decide
-      have h_rs: BitVec.setWidth 5 ((12#6 ++ rs ++ rt ++ imm16) >>> 21) = rs := by
-        bv_decide
-      have h_imm: BitVec.setWidth 16 ((12#6 ++ rs ++ rt ++ imm16)) = imm16 := by
-        bv_decide
-      rw [h_rt, h_rs, h_imm]
+      rw [i_rt, i_rs, i_imm]
       rfl
     . rename_i rt rs imm16 heq
       rw [heq]
       unfold fromBv32
       simp
-      have h_op: BitVec.setWidth 6 ((13#6 ++ rs ++ rt ++ imm16) >>> 26) = 13 := by
-        bv_decide
-      rw [h_op]
+      rw [i_op]
       simp
-      have h_rt: BitVec.setWidth 5 ((13#6 ++ rs ++ rt ++ imm16) >>> 16) = rt := by
-        bv_decide
-      have h_rs: BitVec.setWidth 5 ((13#6 ++ rs ++ rt ++ imm16) >>> 21) = rs := by
-        bv_decide
-      have h_imm: BitVec.setWidth 16 ((13#6 ++ rs ++ rt ++ imm16)) = imm16 := by
-        bv_decide
-      rw [h_rt, h_rs, h_imm]
+      rw [i_rt, i_rs, i_imm]
       rfl
     . rename_i rt rs imm16 heq
       rw [heq]
       unfold fromBv32
       simp
-      have h_op: BitVec.setWidth 6 ((8#6 ++ rs ++ rt ++ imm16) >>> 26) = 8 := by
-        bv_decide
-      rw [h_op]
+      rw [i_op]
       simp
-      have h_rt: BitVec.setWidth 5 ((8#6 ++ rs ++ rt ++ imm16) >>> 16) = rt := by
-        bv_decide
-      have h_rs: BitVec.setWidth 5 ((8#6 ++ rs ++ rt ++ imm16) >>> 21) = rs := by
-        bv_decide
-      have h_imm: BitVec.setWidth 16 ((8#6 ++ rs ++ rt ++ imm16)) = imm16 := by
-        bv_decide
-      rw [h_rt, h_rs, h_imm]
+      rw [i_rt, i_rs, i_imm]
       rfl
     . rename_i rt rs imm16 heq
       rw [heq]
       unfold fromBv32
       simp
-      have h_op: BitVec.setWidth 6 ((10#6 ++ rs ++ rt ++ imm16) >>> 26) = 10 := by
-        bv_decide
-      rw [h_op]
+      rw [i_op]
       simp
-      have h_rt: BitVec.setWidth 5 ((10#6 ++ rs ++ rt ++ imm16) >>> 16) = rt := by
-        bv_decide
-      have h_rs: BitVec.setWidth 5 ((10#6 ++ rs ++ rt ++ imm16) >>> 21) = rs := by
-        bv_decide
-      have h_imm: BitVec.setWidth 16 ((10#6 ++ rs ++ rt ++ imm16)) = imm16 := by
-        bv_decide
-      rw [h_rt, h_rs, h_imm]
+      rw [i_rt, i_rs, i_imm]
       rfl
     . rename_i rt rs imm16 heq
       rw [heq]
       unfold fromBv32
       simp
-      have h_op: BitVec.setWidth 6 ((35#6 ++ rs ++ rt ++ imm16) >>> 26) = 35 := by
-        bv_decide
-      rw [h_op]
+      rw [i_op]
       simp
-      have h_rt: BitVec.setWidth 5 ((35#6 ++ rs ++ rt ++ imm16) >>> 16) = rt := by
-        bv_decide
-      have h_rs: BitVec.setWidth 5 ((35#6 ++ rs ++ rt ++ imm16) >>> 21) = rs := by
-        bv_decide
-      have h_imm: BitVec.setWidth 16 ((35#6 ++ rs ++ rt ++ imm16)) = imm16 := by
-        bv_decide
-      rw [h_rt, h_rs, h_imm]
+      rw [i_rt, i_rs, i_imm]
       rfl
     . rename_i rt rs imm16 heq
       rw [heq]
       unfold fromBv32
       simp
-      have h_op: BitVec.setWidth 6 ((43#6 ++ rs ++ rt ++ imm16) >>> 26) = 43 := by
-        bv_decide
-      rw [h_op]
+      rw [i_op]
       simp
-      have h_rt: BitVec.setWidth 5 ((43#6 ++ rs ++ rt ++ imm16) >>> 16) = rt := by
-        bv_decide
-      have h_rs: BitVec.setWidth 5 ((43#6 ++ rs ++ rt ++ imm16) >>> 21) = rs := by
-        bv_decide
-      have h_imm: BitVec.setWidth 16 ((43#6 ++ rs ++ rt ++ imm16)) = imm16 := by
-        bv_decide
-      rw [h_rt, h_rs, h_imm]
+      rw [i_rt, i_rs, i_imm]
       rfl
     . rename_i rt rs imm16 heq
       rw [heq]
       unfold fromBv32
       simp
-      have h_op: BitVec.setWidth 6 ((4#6 ++ rs ++ rt ++ imm16) >>> 26) = 4 := by
-        bv_decide
-      rw [h_op]
+      rw [i_op]
       simp
-      have h_rt: BitVec.setWidth 5 ((4#6 ++ rs ++ rt ++ imm16) >>> 16) = rt := by
-        bv_decide
-      have h_rs: BitVec.setWidth 5 ((4#6 ++ rs ++ rt ++ imm16) >>> 21) = rs := by
-        bv_decide
-      have h_imm: BitVec.setWidth 16 ((4#6 ++ rs ++ rt ++ imm16)) = imm16 := by
-        bv_decide
-      rw [h_rt, h_rs, h_imm]
+      rw [i_rt, i_rs, i_imm]
       rfl
     . rename_i rt rs imm16 heq
       rw [heq]
       unfold fromBv32
       simp
-      have h_op: BitVec.setWidth 6 ((5#6 ++ rs ++ rt ++ imm16) >>> 26) = 5 := by
-        bv_decide
-      rw [h_op]
+      rw [i_op]
       simp
-      have h_rt: BitVec.setWidth 5 ((5#6 ++ rs ++ rt ++ imm16) >>> 16) = rt := by
-        bv_decide
-      have h_rs: BitVec.setWidth 5 ((5#6 ++ rs ++ rt ++ imm16) >>> 21) = rs := by
-        bv_decide
-      have h_imm: BitVec.setWidth 16 ((5#6 ++ rs ++ rt ++ imm16)) = imm16 := by
-        bv_decide
-      rw [h_rt, h_rs, h_imm]
+      rw [i_rt, i_rs, i_imm]
       rfl
-    . rename_i imm26 heq
-      rw [heq]
-      unfold fromBv32
-      simp
-      have h_op: BitVec.setWidth 6 ((2#6 ++ imm26) >>> 26) = 2 := by
-        bv_decide
-      rw [h_op]
-      simp
-      have h_imm: BitVec.setWidth 26 (2#6 ++ imm26) = imm26 := by
-        bv_decide
-      rw [h_imm]
-      rfl
+    . -- not a j instruction
+      rename_i heq
+      simp at heq
   . split
     . rename_i heq
       rw [heq]
       unfold fromBv32
       rename_i rd rs rt
-      have h_op : BitVec.setWidth 6 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 36#6) >>> 26) = 0 := by
-        bv_decide
       simp
-      rw [h_op]
+      rw [r_op]
       simp
-      have h_funct : BitVec.setWidth 6 (0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 36#6)  = 36#6 := by
-        bv_decide
-      rw [h_funct]
+      rw [r_funct]
       simp
-      have h_rd :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 36#6) >>> 11) = rd := by
-        bv_decide
-      have h_rs :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 36#6) >>> 21) = rs := by
-        bv_decide
-      have h_rt :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 36#6) >>> 16) = rt := by
-        bv_decide
-      rw [h_rd, h_rt, h_rs]
+      rw [r_rd, r_rt, r_rs]
       rfl
     . rename_i heq
       rw [heq]
       unfold fromBv32
       rename_i rd rs rt
-      have h_op : BitVec.setWidth 6 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 37#6) >>> 26) = 0 := by
-        bv_decide
       simp
-      rw [h_op]
+      rw [r_op]
       simp
-      have h_funct : BitVec.setWidth 6 (0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 37#6)  = 37#6 := by
-        bv_decide
-      rw [h_funct]
+      rw [r_funct]
       simp
-      have h_rd :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 37#6) >>> 11) = rd := by
-        bv_decide
-      have h_rs :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 37#6) >>> 21) = rs := by
-        bv_decide
-      have h_rt :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 37#6) >>> 16) = rt := by
-        bv_decide
-      rw [h_rd, h_rt, h_rs]
+      rw [r_rd, r_rt, r_rs]
       rfl
     . rename_i heq
       rw [heq]
       unfold fromBv32
       rename_i rd rs rt
-      have h_op : BitVec.setWidth 6 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 32#6) >>> 26) = 0 := by
-        bv_decide
       simp
-      rw [h_op]
+      rw [r_op]
       simp
-      have h_funct : BitVec.setWidth 6 (0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 32#6)  = 32#6 := by
-        bv_decide
-      rw [h_funct]
+      rw [r_funct]
       simp
-      have h_rd :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 32#6) >>> 11) = rd := by
-        bv_decide
-      have h_rs :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 32#6) >>> 21) = rs := by
-        bv_decide
-      have h_rt :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 32#6) >>> 16) = rt := by
-        bv_decide
-      rw [h_rd, h_rt, h_rs]
+      rw [r_rd, r_rt, r_rs]
       rfl
     . rename_i heq
       rw [heq]
       unfold fromBv32
       rename_i rd rs rt
-      have h_op : BitVec.setWidth 6 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 34#6) >>> 26) = 0 := by
-        bv_decide
       simp
-      rw [h_op]
+      rw [r_op]
       simp
-      have h_funct : BitVec.setWidth 6 (0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 34#6)  = 34#6 := by
-        bv_decide
-      rw [h_funct]
+      rw [r_funct]
       simp
-      have h_rd :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 34#6) >>> 11) = rd := by
-        bv_decide
-      have h_rs :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 34#6) >>> 21) = rs := by
-        bv_decide
-      have h_rt :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 34#6) >>> 16) = rt := by
-        bv_decide
-      rw [h_rd, h_rt, h_rs]
+      rw [r_rd, r_rt, r_rs]
       rfl
     . rename_i heq
       rw [heq]
       unfold fromBv32
       rename_i rd rs rt
-      have h_op : BitVec.setWidth 6 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 42#6) >>> 26) = 0 := by
-        bv_decide
       simp
-      rw [h_op]
+      rw [r_op]
       simp
-      have h_funct : BitVec.setWidth 6 (0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 42#6)  = 42#6 := by
-        bv_decide
-      rw [h_funct]
+      rw [r_funct]
       simp
-      have h_rd :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 42#6) >>> 11) = rd := by
-        bv_decide
-      have h_rs :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 42#6) >>> 21) = rs := by
-        bv_decide
-      have h_rt :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 42#6) >>> 16) = rt := by
-        bv_decide
-      rw [h_rd, h_rt, h_rs]
+      rw [r_rd, r_rt, r_rs]
       rfl
     . rename_i heq
       simp at heq
