@@ -3,6 +3,7 @@
         "Dmem",
         "Funct",
         "Repr",
+        "Shamt",
         "addi",
         "andi",
         "imem",
