@@ -21,7 +21,7 @@ inductive I where
   | sw   : I
   | beq  : I
   | bne  : I
-deriving Repr
+deriving Repr, BEq
 
 inductive Instr where
   | i (instr: I) (rs rt: Reg) (imm: Bv16) : Instr
@@ -65,7 +65,7 @@ def fromBv32 (bv: Bv32) : Instr :=
     | 0x20 => add rd rs rd
     | 0x22 => sub rd rs rd
     | 0x2a => slt rd rs rd
-    | _  => panic!("non supported R instruction")
+    | _    => panic!("non supported R instruction")
   | 0x0c => andi rt rs imm16
   | 0x0d => ori  rt rs imm16
   | 0x08 => addi rt rs imm16
@@ -75,7 +75,7 @@ def fromBv32 (bv: Bv32) : Instr :=
   | 0x04 => beq  rt rs imm16
   | 0x05 => bne  rt rs imm16
   | 0x02 => j    imm26
-  | _ => panic!("non supported instruction")
+  | _    => panic!("non supported instruction")
 
 def toBv32 (instr: Instr) : Bv32 :=
   match instr with
@@ -98,6 +98,13 @@ def toBv32 (instr: Instr) : Bv32 :=
 #eval (toBv32 (add t0 t1 t2))
 
 #eval (fromBv32 (toBv32 (add t0 t1 t2)))
+
+theorem tofrom (i: Instr) : fromBv32 (toBv32 i) = i := by
+  induction i using toBv32.induct <;> simp [fromBv32, toBv32, *]
+
+
+
+
 
 -- Instruction memory
 abbrev IMem : Type := Array Instr
