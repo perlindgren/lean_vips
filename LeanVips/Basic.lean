@@ -1,4 +1,5 @@
 import LeanVips.Reg.Basic
+import Std.Tactic.BVDecide
 
 abbrev Op   : Type := BitVec 6
 abbrev Funct: Type := BitVec 6
@@ -50,21 +51,21 @@ namespace LeanVips
 
 
 def fromBv32 (bv: Bv32) : Instr :=
-  let op : Op := (bv >>> 26).truncate _
-  let funct : Funct := bv.truncate _
-  let rs : Reg := (bv >>> 21).truncate _
-  let rt : Reg := (bv >>> 16).truncate _
-  let rd : Reg := (bv >>> 11).truncate _
-  let imm16 : Bv16 := bv.truncate _
-  let imm26 : Bv26 := bv.truncate _
+  let op : Op := (bv >>> 26).setWidth _
+  let funct : Funct := bv.setWidth _
+  let rs : Reg := (bv >>> 21).setWidth _
+  let rt : Reg := (bv >>> 16).setWidth _
+  let rd : Reg := (bv >>> 11).setWidth _
+  let imm16 : Bv16 := bv.setWidth _
+  let imm26 : Bv26 := bv.setWidth _
 
   match op with
   | 0 => match funct with
-    | 0x24 => and rd rs rd
-    | 0x25 => or  rd rs rd
-    | 0x20 => add rd rs rd
-    | 0x22 => sub rd rs rd
-    | 0x2a => slt rd rs rd
+    | 0x24 => and rd rs rt
+    | 0x25 => or  rd rs rt
+    | 0x20 => add rd rs rt
+    | 0x22 => sub rd rs rt
+    | 0x2a => slt rd rs rt
     | _    => panic!("non supported R instruction")
   | 0x0c => andi rt rs imm16
   | 0x0d => ori  rt rs imm16
@@ -95,12 +96,162 @@ def toBv32 (instr: Instr) : Bv32 :=
   | j    imm26       => (0x02: Op) ++ imm26
 
 
+#eval (toBv32 (and t0 t1 t2))
+#eval (toBv32 (or  t0 t1 t2))
 #eval (toBv32 (add t0 t1 t2))
+#eval (toBv32 (sub t0 t1 t2))
+#eval (toBv32 (slt t0 t1 t2))
 
+#eval (fromBv32 (toBv32 (and t0 t1 t2)))
+#eval (fromBv32 (toBv32 (or  t0 t1 t2)))
 #eval (fromBv32 (toBv32 (add t0 t1 t2)))
+#eval (fromBv32 (toBv32 (sub t0 t1 t2)))
+#eval (fromBv32 (toBv32 (slt t0 t1 t2)))
+
+-- theorem opshift ()S
 
 theorem tofrom (i: Instr) : fromBv32 (toBv32 i) = i := by
-  induction i using toBv32.induct <;> simp [fromBv32, toBv32, *]
+  simp [toBv32]
+  cases i
+  . rename_i instr rs rt imm
+    sorry
+  . -- rename_i instr rs rt rd
+    split
+    . rename_i heq
+      rw [heq]
+      unfold fromBv32
+      rename_i rd rs rt
+      have h_op : BitVec.setWidth 6 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 36#6) >>> 26) = 0 := by
+        bv_decide
+      simp
+      rw [h_op]
+      simp
+      have h_funct : BitVec.setWidth 6 (0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 36#6)  = 36#6 := by
+        bv_decide
+      rw [h_funct]
+      simp
+      have h_rd :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 36#6) >>> 11) = rd := by
+        bv_decide
+      have h_rs :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 36#6) >>> 21) = rs := by
+        bv_decide
+      have h_rt :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 36#6) >>> 16) = rt := by
+        bv_decide
+      rw [h_rd, h_rt, h_rs]
+      rfl
+    . rename_i heq
+      rw [heq]
+      unfold fromBv32
+      rename_i rd rs rt
+      have h_op : BitVec.setWidth 6 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 37#6) >>> 26) = 0 := by
+        bv_decide
+      simp
+      rw [h_op]
+      simp
+      have h_funct : BitVec.setWidth 6 (0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 37#6)  = 37#6 := by
+        bv_decide
+      rw [h_funct]
+      simp
+      have h_rd :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 37#6) >>> 11) = rd := by
+        bv_decide
+      have h_rs :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 37#6) >>> 21) = rs := by
+        bv_decide
+      have h_rt :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 37#6) >>> 16) = rt := by
+        bv_decide
+      rw [h_rd, h_rt, h_rs]
+      rfl
+    . rename_i heq
+      rw [heq]
+      unfold fromBv32
+      rename_i rd rs rt
+      have h_op : BitVec.setWidth 6 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 32#6) >>> 26) = 0 := by
+        bv_decide
+      simp
+      rw [h_op]
+      simp
+      have h_funct : BitVec.setWidth 6 (0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 32#6)  = 32#6 := by
+        bv_decide
+      rw [h_funct]
+      simp
+      have h_rd :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 32#6) >>> 11) = rd := by
+        bv_decide
+      have h_rs :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 32#6) >>> 21) = rs := by
+        bv_decide
+      have h_rt :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 32#6) >>> 16) = rt := by
+        bv_decide
+      rw [h_rd, h_rt, h_rs]
+      rfl
+    . rename_i heq
+      rw [heq]
+      unfold fromBv32
+      rename_i rd rs rt
+      have h_op : BitVec.setWidth 6 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 34#6) >>> 26) = 0 := by
+        bv_decide
+      simp
+      rw [h_op]
+      simp
+      have h_funct : BitVec.setWidth 6 (0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 34#6)  = 34#6 := by
+        bv_decide
+      rw [h_funct]
+      simp
+      have h_rd :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 34#6) >>> 11) = rd := by
+        bv_decide
+      have h_rs :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 34#6) >>> 21) = rs := by
+        bv_decide
+      have h_rt :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 34#6) >>> 16) = rt := by
+        bv_decide
+      rw [h_rd, h_rt, h_rs]
+      rfl
+    . rename_i heq
+      rw [heq]
+      unfold fromBv32
+      rename_i rd rs rt
+      have h_op : BitVec.setWidth 6 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 42#6) >>> 26) = 0 := by
+        bv_decide
+      simp
+      rw [h_op]
+      simp
+      have h_funct : BitVec.setWidth 6 (0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 42#6)  = 42#6 := by
+        bv_decide
+      rw [h_funct]
+      simp
+      have h_rd :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 42#6) >>> 11) = rd := by
+        bv_decide
+      have h_rs :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 42#6) >>> 21) = rs := by
+        bv_decide
+      have h_rt :BitVec.setWidth 5 ((0#6 ++ rs ++ rt ++ rd ++ 0#5 ++ 42#6) >>> 16) = rt := by
+        bv_decide
+      rw [h_rd, h_rt, h_rs]
+      rfl
+    . sorry
+    . sorry
+    . sorry
+    . sorry
+    . sorry
+    . sorry
+    . sorry
+    . sorry
+    . sorry
+
+  . rename_i imm
+    simp [toBv32]
+    unfold fromBv32
+    have jt : ∀ (x: BitVec 6), (BitVec.setWidth 6 ((x ++ imm) >>> 26) = x) := by
+      bv_decide
+    simp
+    rw [jt]
+    simp
+    have jt2 : (BitVec.setWidth 26 (2#6 ++ imm) = imm) := by
+      bv_decide
+    rw [jt2]
+    rfl
+
+
+
+
+
+
+
+
 
 
 
