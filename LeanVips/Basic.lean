@@ -113,10 +113,159 @@ def toBv32 (instr: Instr) : Bv32 :=
 theorem tofrom (i: Instr) : fromBv32 (toBv32 i) = i := by
   simp [toBv32]
   cases i
-  . rename_i instr rs rt imm
-    sorry
-  . rename_i instr _rs _rt _rd
+  . -- rename_i instr rs rt imm
     split
+    . rename_i heq
+      simp at heq
+    . rename_i heq
+      simp at heq
+    . rename_i heq
+      simp at heq
+    . rename_i heq
+      simp at heq
+    . rename_i heq
+      simp at heq
+    . rename_i rt rs imm16 heq
+      rw [heq]
+      unfold fromBv32
+      simp
+      have h_op: BitVec.setWidth 6 ((12#6 ++ rs ++ rt ++ imm16) >>> 26) = 12 := by
+        bv_decide
+      rw [h_op]
+      simp
+      have h_rt: BitVec.setWidth 5 ((12#6 ++ rs ++ rt ++ imm16) >>> 16) = rt := by
+        bv_decide
+      have h_rs: BitVec.setWidth 5 ((12#6 ++ rs ++ rt ++ imm16) >>> 21) = rs := by
+        bv_decide
+      have h_imm: BitVec.setWidth 16 ((12#6 ++ rs ++ rt ++ imm16)) = imm16 := by
+        bv_decide
+      rw [h_rt, h_rs, h_imm]
+      rfl
+    . rename_i rt rs imm16 heq
+      rw [heq]
+      unfold fromBv32
+      simp
+      have h_op: BitVec.setWidth 6 ((13#6 ++ rs ++ rt ++ imm16) >>> 26) = 13 := by
+        bv_decide
+      rw [h_op]
+      simp
+      have h_rt: BitVec.setWidth 5 ((13#6 ++ rs ++ rt ++ imm16) >>> 16) = rt := by
+        bv_decide
+      have h_rs: BitVec.setWidth 5 ((13#6 ++ rs ++ rt ++ imm16) >>> 21) = rs := by
+        bv_decide
+      have h_imm: BitVec.setWidth 16 ((13#6 ++ rs ++ rt ++ imm16)) = imm16 := by
+        bv_decide
+      rw [h_rt, h_rs, h_imm]
+      rfl
+    . rename_i rt rs imm16 heq
+      rw [heq]
+      unfold fromBv32
+      simp
+      have h_op: BitVec.setWidth 6 ((8#6 ++ rs ++ rt ++ imm16) >>> 26) = 8 := by
+        bv_decide
+      rw [h_op]
+      simp
+      have h_rt: BitVec.setWidth 5 ((8#6 ++ rs ++ rt ++ imm16) >>> 16) = rt := by
+        bv_decide
+      have h_rs: BitVec.setWidth 5 ((8#6 ++ rs ++ rt ++ imm16) >>> 21) = rs := by
+        bv_decide
+      have h_imm: BitVec.setWidth 16 ((8#6 ++ rs ++ rt ++ imm16)) = imm16 := by
+        bv_decide
+      rw [h_rt, h_rs, h_imm]
+      rfl
+    . rename_i rt rs imm16 heq
+      rw [heq]
+      unfold fromBv32
+      simp
+      have h_op: BitVec.setWidth 6 ((10#6 ++ rs ++ rt ++ imm16) >>> 26) = 10 := by
+        bv_decide
+      rw [h_op]
+      simp
+      have h_rt: BitVec.setWidth 5 ((10#6 ++ rs ++ rt ++ imm16) >>> 16) = rt := by
+        bv_decide
+      have h_rs: BitVec.setWidth 5 ((10#6 ++ rs ++ rt ++ imm16) >>> 21) = rs := by
+        bv_decide
+      have h_imm: BitVec.setWidth 16 ((10#6 ++ rs ++ rt ++ imm16)) = imm16 := by
+        bv_decide
+      rw [h_rt, h_rs, h_imm]
+      rfl
+    . rename_i rt rs imm16 heq
+      rw [heq]
+      unfold fromBv32
+      simp
+      have h_op: BitVec.setWidth 6 ((35#6 ++ rs ++ rt ++ imm16) >>> 26) = 35 := by
+        bv_decide
+      rw [h_op]
+      simp
+      have h_rt: BitVec.setWidth 5 ((35#6 ++ rs ++ rt ++ imm16) >>> 16) = rt := by
+        bv_decide
+      have h_rs: BitVec.setWidth 5 ((35#6 ++ rs ++ rt ++ imm16) >>> 21) = rs := by
+        bv_decide
+      have h_imm: BitVec.setWidth 16 ((35#6 ++ rs ++ rt ++ imm16)) = imm16 := by
+        bv_decide
+      rw [h_rt, h_rs, h_imm]
+      rfl
+    . rename_i rt rs imm16 heq
+      rw [heq]
+      unfold fromBv32
+      simp
+      have h_op: BitVec.setWidth 6 ((43#6 ++ rs ++ rt ++ imm16) >>> 26) = 43 := by
+        bv_decide
+      rw [h_op]
+      simp
+      have h_rt: BitVec.setWidth 5 ((43#6 ++ rs ++ rt ++ imm16) >>> 16) = rt := by
+        bv_decide
+      have h_rs: BitVec.setWidth 5 ((43#6 ++ rs ++ rt ++ imm16) >>> 21) = rs := by
+        bv_decide
+      have h_imm: BitVec.setWidth 16 ((43#6 ++ rs ++ rt ++ imm16)) = imm16 := by
+        bv_decide
+      rw [h_rt, h_rs, h_imm]
+      rfl
+    . rename_i rt rs imm16 heq
+      rw [heq]
+      unfold fromBv32
+      simp
+      have h_op: BitVec.setWidth 6 ((4#6 ++ rs ++ rt ++ imm16) >>> 26) = 4 := by
+        bv_decide
+      rw [h_op]
+      simp
+      have h_rt: BitVec.setWidth 5 ((4#6 ++ rs ++ rt ++ imm16) >>> 16) = rt := by
+        bv_decide
+      have h_rs: BitVec.setWidth 5 ((4#6 ++ rs ++ rt ++ imm16) >>> 21) = rs := by
+        bv_decide
+      have h_imm: BitVec.setWidth 16 ((4#6 ++ rs ++ rt ++ imm16)) = imm16 := by
+        bv_decide
+      rw [h_rt, h_rs, h_imm]
+      rfl
+    . rename_i rt rs imm16 heq
+      rw [heq]
+      unfold fromBv32
+      simp
+      have h_op: BitVec.setWidth 6 ((5#6 ++ rs ++ rt ++ imm16) >>> 26) = 5 := by
+        bv_decide
+      rw [h_op]
+      simp
+      have h_rt: BitVec.setWidth 5 ((5#6 ++ rs ++ rt ++ imm16) >>> 16) = rt := by
+        bv_decide
+      have h_rs: BitVec.setWidth 5 ((5#6 ++ rs ++ rt ++ imm16) >>> 21) = rs := by
+        bv_decide
+      have h_imm: BitVec.setWidth 16 ((5#6 ++ rs ++ rt ++ imm16)) = imm16 := by
+        bv_decide
+      rw [h_rt, h_rs, h_imm]
+      rfl
+    . rename_i imm26 heq
+      rw [heq]
+      unfold fromBv32
+      simp
+      have h_op: BitVec.setWidth 6 ((2#6 ++ imm26) >>> 26) = 2 := by
+        bv_decide
+      rw [h_op]
+      simp
+      have h_imm: BitVec.setWidth 26 (2#6 ++ imm26) = imm26 := by
+        bv_decide
+      rw [h_imm]
+      rfl
+  . split
     . rename_i heq
       rw [heq]
       unfold fromBv32
@@ -223,16 +372,23 @@ theorem tofrom (i: Instr) : fromBv32 (toBv32 i) = i := by
       rw [h_rd, h_rt, h_rs]
       rfl
     . rename_i heq
-      rw [heq]
-      sorry
-    . sorry
-    . sorry
-    . sorry
-    . sorry
-    . sorry
-    . sorry
-    . sorry
-    . sorry
+      simp at heq
+    . rename_i heq
+      simp at heq
+    . rename_i heq
+      simp at heq
+    . rename_i heq
+      simp at heq
+    . rename_i heq
+      simp at heq
+    . rename_i heq
+      simp at heq
+    . rename_i heq
+      simp at heq
+    . rename_i heq
+      simp at heq
+    . rename_i heq
+      simp at heq
 
   . rename_i imm
     simp [toBv32]
