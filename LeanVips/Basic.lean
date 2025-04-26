@@ -140,9 +140,8 @@ theorem r_funct : ∀ (op : Op) (rs rt rd: Reg) (shamt: Shamt) (funct: Funct),
 theorem tofrom (i: Instr) : fromBv32 (toBv32 i) = i := by
   simp [toBv32]
   cases i
-  . -- rename_i instr rs rt imm
-    split
-    . rename_i heq
+  . split -- i type instruction
+    . rename_i heq -- not a r type instruction
       simp at heq
     . rename_i heq
       simp at heq
@@ -216,10 +215,10 @@ theorem tofrom (i: Instr) : fromBv32 (toBv32 i) = i := by
       simp
       rw [i_rt, i_rs, i_imm]
       rfl
-    . -- not a j instruction
+    . -- not a j type instruction
       rename_i heq
       simp at heq
-  . split
+  . split -- r type instruction
     . rename_i heq
       rw [heq]
       unfold fromBv32
@@ -275,7 +274,7 @@ theorem tofrom (i: Instr) : fromBv32 (toBv32 i) = i := by
       simp
       rw [r_rd, r_rt, r_rs]
       rfl
-    . rename_i heq
+    . rename_i heq -- not a i/j type
       simp at heq
     . rename_i heq
       simp at heq
@@ -294,7 +293,7 @@ theorem tofrom (i: Instr) : fromBv32 (toBv32 i) = i := by
     . rename_i heq
       simp at heq
 
-  . rename_i imm
+  . rename_i imm -- j type instruction
     simp [toBv32]
     unfold fromBv32
     have jt : ∀ (x: BitVec 6), (BitVec.setWidth 6 ((x ++ imm) >>> 26) = x) := by
