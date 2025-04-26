@@ -46,7 +46,15 @@ abbrev Regfile : Type := Vector Bv32 32
 
 def Regfile.w (rf: Regfile) (r: Reg) (v: Bv32) : Regfile :=
   rf.set r.toNat v
+
+-- def Regfile.r (rf: Regfile) (r: Reg) : Bv32 :=
+--   match r with
+--   | zero => 0 -- register zero always reads zero
+--   | _    => rf[r.toNat]
+
+-- for easier reasoning using bv_decide
 def Regfile.r (rf: Regfile) (r: Reg) : Bv32 :=
-  match r with
-  | zero => 0 -- register zero always reads zero
-  | _    => rf[r.toNat]
+  if r = zero then
+    0
+  else
+    rf[r.toNat]
