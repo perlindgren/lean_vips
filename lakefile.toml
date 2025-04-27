@@ -5,6 +5,3 @@ defaultTargets = ["lean_vips"]
 [[lean_lib]]
 name = "LeanVips"
 
-[[lean_exe]]
-name = "lean_vips"
-root = "Main"
