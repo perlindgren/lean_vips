@@ -1,6 +1,6 @@
 name = "lean_vips"
 version = "0.1.0"
-defaultTargets = ["lean_vips"]
+defaultTargets = ["LeanVips"]
 
 [[lean_lib]]
 name = "LeanVips"
