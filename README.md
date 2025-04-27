@@ -1,6 +1,6 @@
 # lean_vips
 
-A small Lean experiment to model the execution semantics of the VIPS subset of the MIPS instruction set.
+A small Lean experiment to model the execution semantics of the VIPS subset of the MIPS instruction set. I like to express my gratitude to the Lean community and in particular Henrik Böving who patiently have guided me through the process to the current state of the development. 
 
 ## Install
 
@@ -244,8 +244,23 @@ The implementation matches the instruction class (R, I and J), and implements th
 
 The `eval` definition caters for the transitive behavior by computing next state (`inst_eval`) and recursively calling `eval`. Termination is ensured by the `fuel` parameter that monotonically decrease for each instruction evaluation. Execution will be aborted in case either of memory accesses out of bounds.
 
+Examples of use are found in [LeanVips/Basic.lean](./LeanVips/Basic.lean).
 
+### SerDe
 
+In order to interact with the environment serialization (`toBv32`), and deserialization (`fromBv32`) are implemented in [LeanVips/SerDe.Basic.lean](./LeanVips/SerDe/Basic.lean). 
+
+Symmetry/reversibility is proven:
+
+```lean
+theorem tofrom (i: Instr) : fromBv32 (toBv32 i) = i 
+```
+
+Future work: 
+- The current implementation does not implement file operations.
+- The proof could be simplified by higher degree of automation.
+
+Examples of use are found in [LeanVips/Basic.lean](./LeanVips/Basic.lean).
 
 
 
