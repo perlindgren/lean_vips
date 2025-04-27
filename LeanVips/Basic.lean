@@ -1,4 +1,5 @@
 import LeanVips.Semantics.Basic
+import LeanVips.SerDe.Basic
 import Std.Tactic.BVDecide
 
 namespace LeanVips
