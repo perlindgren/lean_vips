@@ -97,7 +97,12 @@ Notice here, the complete definition of VIPS in Lean is less than 100 lines of c
 
 ## The VIPS model in Lean
 
-At hart of the model we define the data structures capturing the VIPS instruction set:
+### Machine code and Assembly
+
+The VIPS model is a subset of the MIPS32 ISA, refer to [MIPS Greencard](https://booksite.elsevier.com/9780124077263/downloads/COD_5e_Greencard.pdf) for the complete MIPS32 instruction set.
+
+
+At hart of the model we define the data structures capturing the VIPS instruction set in [LeanVips/Asm.Basic.lean](./LeanVips/Asm/Basic.lean):
 
 ```lean
 -- BitVectors
@@ -224,6 +229,20 @@ theorem andi_equal_quant: ∀ (rs rt imm16), andi rt rs imm16 = Instr.i I.andi r
 
 With the current encoding is however harder to further generalize (showing that this holds for all the shorthands defined). Instead we show it case by case for each supported instruction. (Room for future improvement, in case larger subset of instructions should be supported.)
 
+### Semantics
+
+The interpretation of the VIPS instruction set is given in [LeanVips/Semantics.Basic.lean](./LeanVips/Semantics/Basic.lean). 
+
+We start by modelling instruction and data memory:
+
+- `IMem` as an array of `Instr` (see previous section). `IMem.r` implements read (word aligned addresses).
+- `DMem` as an array of `Bv32` (words). `DMem.r` and `IMem.w` implements read/write (word aligned) correspondingly.
+
+The `instr_eval` definition implements the interpretation (or virtual machine) from current state (instruction, program counter, register file, and data memory) to the next state (register file, data memory and program counter).
+
+The implementation matches the instruction class (R, I and J), and implements the corresponding state transition according to [MIPS Greencard](https://booksite.elsevier.com/9780124077263/downloads/COD_5e_Greencard.pdf).
+
+The `eval` definition caters for the transitive behavior by computing next state (`inst_eval`) and recursively calling `eval`. Termination is ensured by the `fuel` parameter that monotonically decrease for each instruction evaluation. Execution will be aborted in case either of memory accesses out of bounds.
 
 
 
@@ -231,7 +250,14 @@ With the current encoding is however harder to further generalize (showing that 
 
 
 
-The VIPS model is a subset of the MIPS32 ISA, refer to [MIPS Greencard](https://booksite.elsevier.com/9780124077263/downloads/COD_5e_Greencard.pdf) for the complete MIPS32 instruction set.
+
+
+
+
+
+
+
+
 
 
 

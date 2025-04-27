@@ -1,4 +1,4 @@
-import LeanVips.Asm.Basic
+import LeanVips.Semantics.Basic
 import Std.Tactic.BVDecide
 
 namespace LeanVips
@@ -46,7 +46,7 @@ theorem prog1 : ∀ (rf : Regfile) (dm: DMem),
     let (_rf', _dm', pc') := eval imem_p1 1 0x00 rf dm
     pc' = 0x04
   := by
-    simp [eval, imem_p1, instr_eval, instr]
+    simp [eval, imem_p1, instr_eval, IMem.r]
 
 -- prove that reg t0 has increased by 0x20 (independent on initial value)
 -- notice the value might have overflowed (we have wrapping arithmetics)
@@ -54,7 +54,7 @@ theorem prog1b : ∀ (rf : Regfile) (dm: DMem),
     let (rf', _dm', _pc') := eval imem_p1 1 0x00 rf dm
     rf'[t0.toNat] = (rf[t0.toNat] + 0x20)
   := by
-    simp [eval, imem_p1, instr_eval, instr, Regfile.w, Regfile.r, t0, zero]
+    simp [eval, imem_p1, instr_eval, IMem.r, Regfile.w, Regfile.r, t0, zero]
 
 -- a bit more complex, here we first update t1 and based on that t2
 def imem_p2 :=
@@ -68,7 +68,7 @@ theorem prog2 : ∀ (rf : Regfile) (dm: DMem),
     let (rf', _dm', _pc') := eval imem_p2 2 0x00 rf dm
     rf'[t1.toNat] = (rf[t0.toNat] + 0x20)
   := by
-    simp [eval, imem_p2, instr_eval, instr, Regfile.w, Regfile.r, t0, t1, t2, zero]
+    simp [eval, imem_p2, instr_eval, IMem.r, Regfile.w, Regfile.r, t0, t1, t2, zero]
 
 -- prove the value of t2 after 2 clock cycles
 -- this should now be initial t0 + 0x40
@@ -76,7 +76,7 @@ theorem prog2b : ∀ (rf : Regfile) (dm: DMem),
     let (rf', _dm', _pc') := eval imem_p2 2 0x00 rf dm
     rf'[t2.toNat] = (rf[t0.toNat] + 0x40)
   := by
-    simp [eval, imem_p2, instr_eval, instr, Regfile.w, Regfile.r, t0, t1, t2, zero]
+    simp [eval, imem_p2, instr_eval, IMem.r, Regfile.w, Regfile.r, t0, t1, t2, zero]
     bv_decide
 
 -- now lets try to prove the implementation of arithmetic summation
@@ -119,7 +119,7 @@ theorem prog_sum : ∀ (rf : Regfile) (dm: DMem),
     let (rf', _dm', _pc') := eval imem_sum 25 0x00 rf dm
     rf'[t1.toNat] = 6
   := by
-    simp [eval, imem_sum, instr_eval, instr, Regfile.w, Regfile.r, at', t0, t1, t2, zero]
+    simp [eval, imem_sum, instr_eval, IMem.r, Regfile.w, Regfile.r, at', t0, t1, t2, zero]
 
 -- We want to prove that for all n, the program computes the sum according to the specification
 -- However we have to assume:
@@ -129,5 +129,5 @@ theorem prog_sum_proof : ∀ (rf : Regfile) (dm: DMem) (n f: Nat),
     let (rf', dm', pc') := eval imem_sum f 0x00 rf dm
     sum n = (sum n: Bv32) -> (pc' = 0x20) -> (rf'[t1.toNat] = sum n)
   := by
-    simp [eval, imem_sum, instr_eval, instr, Regfile.w, Regfile.r, at', t0, t1, t2, zero]
+    simp [eval, imem_sum, instr_eval, IMem.r, Regfile.w, Regfile.r, at', t0, t1, t2, zero]
     sorry
