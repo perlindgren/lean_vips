@@ -5,19 +5,19 @@ import Std.Tactic.BVDecide
 namespace LeanVips
 
 -- serialization examples
-#eval (toBv32 (and  t0 t1 t2))
-#eval (toBv32 (or   t0 t1 t2))
-#eval (toBv32 (add  t0 t1 t2))
-#eval (toBv32 (sub  t0 t1 t2))
-#eval (toBv32 (andi t0 t1 0))
-#eval (toBv32 (ori  t0 t1 0xffff))
-#eval (toBv32 (addi t0 t1 (-1)))
-#eval (toBv32 (slti t0 t1 5))
-#eval (toBv32 (lw   t0 16 t1))
-#eval (toBv32 (sw   t0 0 t1))
-#eval (toBv32 (beq  t0 t1 2))
-#eval (toBv32 (beq  t0 t1 (-1)))
-#eval (toBv32 (j    0x123_4567))
+#eval toBv32 (and  t0 t1 t2)
+#eval toBv32 (or   t0 t1 t2)
+#eval toBv32 (add  t0 t1 t2)
+#eval toBv32 (sub  t0 t1 t2)
+#eval toBv32 (andi t0 t1 0)
+#eval toBv32 (ori  t0 t1 0xffff)
+#eval toBv32 (addi t0 t1 (-1))
+#eval toBv32 (slti t0 t1 5)
+#eval toBv32 (lw   t0 16 t1)
+#eval toBv32 (sw   t0 0 t1)
+#eval toBv32 (beq  t0 t1 2)
+#eval toBv32 (beq  t0 t1 (-1))
+#eval toBv32 (j    0x123_4567)
 
 def imem : IMem := #[
   bne  t1 zero 4,    --00 -- if t1 != 0 brach to 14
@@ -34,7 +34,7 @@ def imem : IMem := #[
 def rf:  Regfile := Vector.mkVector 32 0
 def dm : DMem := #[]
 
-#eval (eval imem 9 0x00 rf dm) -- state after executing 9 instructions
+#eval eval imem 9 0x00 rf dm -- state after executing 9 instructions
 
 -- lets try some simple proofs by (symbolic) execution
 def imem_p1 :=
@@ -132,6 +132,12 @@ theorem prog_sum_proof : ∀ (rf : Regfile) (dm: DMem) (n f: Nat),
   := by
     simp [eval, imem_sum, instr_eval, IMem.r, Regfile.w, Regfile.r, at', t0, t1, t2, zero]
     sorry
+
+-- testing the data memory
+-- notice,
+--   we support only lw/sw
+--   memory implementation is based on word indexes, so address is shifted right by 2
+--   out of bounds reads/writes will cause panic
 
 def dm_data : DMem := #[
   1, -- 00

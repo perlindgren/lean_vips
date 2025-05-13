@@ -32,7 +32,7 @@ inductive Instr where
   | j (imm26: Bv26) : Instr
 deriving Repr, Inhabited
 
-#check (Instr.i I.andi t0 t1 42)
+#check Instr.i I.andi t0 t1 42
 
 -- Instruction assembly shorthands
 @[match_pattern] def and  (rd rs rt: Reg) : Instr := .r .and rs rt rd
@@ -50,7 +50,7 @@ deriving Repr, Inhabited
 @[match_pattern] def bne  (rt rs: Reg) (imm16: Bv16): Instr := .i .bne  rs rt imm16
 @[match_pattern] def j                 (imm26: Bv26): Instr := .j             imm26
 
-#check (andi t1 t1 42)
+#check andi t1 t1 42
 
 theorem andi_equal: andi t1 t0 42 = Instr.i I.andi t0 t1 42 :=
   by

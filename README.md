@@ -25,29 +25,29 @@ In the `Lean InfoView`should now see the current status (state) of Lean, reflect
 
 ### Evaluation
 
-Put your cursor at the end of line 7. 
+Put your cursor at the end of line 8. 
 
 ```lean
-#eval (toBv32 (and  t0 t1 t2)) [Cursor here] 
+#eval toBv32 (and  t0 t1 t2) [Cursor here] 
 ```
 
 In the `Info View` you should se the machine code (in binary hex) representation of the `and t0 t1 t2` Vips instruction, like this:
 
 ```lean
-Basic.lean:99:0
+Basic.lean:8:30
   0x012a4024#32
 ```
 The `#32` indicate that the resulting value is a 32-bit bit vector (more on `BitVec` later). 
 
 You can try neighboring lines, and see the translation to binary for other instructions and/or change the *mnemonic* or *operands* (the *rd*, *rs*, *rt* arguments) to obtain the corresponding machine code. Hint, you can use this later for your lab5 programming exercise.
 
-Now, put your cursor at the end of line 36.
+Now, put your cursor at the end of line 37.
 
 ```lean
-#eval (eval imem 9 0x00 rf dm) [your cursor here]
+#eval eval imem 9 0x00 rf dm [your cursor here]
 ```
 
-Lean will show the result of evaluating the `eval` definition (function) as a tuple of three values `(RegisterFile,  DMem, Bv32)`. Fhe first `RegisterFile` is the resulting register file (an array of 32 words), second `DMem` is the data memory (dynamic array being empty in this case) and third and last, the value of the program counter register.
+Lean will show the result of evaluating the `eval` definition (function) as a tuple of three values `(RegisterFile,  DMem, Bv32)`. The first `RegisterFile` is the resulting register file (an array of 32 words), second `DMem` is the data memory (dynamic array being empty in this case) and third and last, the value of the program counter register.
 
 Looking at the arguments of `eval imem 9 0x00 rf dm`. 
 - `imem`is the instruction memory definition (our program to execute)
@@ -63,8 +63,8 @@ Looking at the arguments of `eval imem 9 0x00 rf dm`.
   ```
 - `9`is the number of simulation steps we want to run (in this case 9).
 - `0x00`is the initial value for the `pc` register (the instruction memory starts at address 0x00).
-- `rf`is the initial state of the register file, declared at line 33 to be a vector of 32, 0 valued words.
-- `dm`is the initial state of the data memory, declared at line 34 as empty.
+- `rf`is the initial state of the register file, declared at line 34 to be a vector of 32, 0 valued words.
+- `dm`is the initial state of the data memory, declared at line 35 as empty.
 
 The state after simulating 9 instructions is presented as the tuple:
 
@@ -159,7 +159,7 @@ The `Reg` definition along with constructors `zero, at', v0` etc., are given in 
 Altogether the definitions now let us construct VIPS assembly instructions and check them, e.g.:
 
 ```lean
-#check (Instr.i I.andi t0 t1 42) [place cursor here]
+#check Instr.i I.andi t0 t1 42 [place cursor here]
 ``` 
 Will give you:
 ```lean
@@ -179,7 +179,7 @@ While possible to create machine code instructions, the syntax is inconvenient, 
 You can now use these shorthands to construct VIPS assembly instructions, lets check this one: 
 
 ```lean
-#check (andi t1 t0 42)
+#check andi t1 t0 42 [place cursor here]
 ```
 
 You should now have:
@@ -240,9 +240,9 @@ We start by modelling instruction and data memory:
 
 The `instr_eval` definition implements the interpretation (or virtual machine) from current state (instruction, program counter, register file, and data memory) to the next state (register file, data memory and program counter).
 
-The implementation matches the instruction class (R, I and J), and implements the corresponding state transition according to [MIPS Greencard](https://booksite.elsevier.com/9780124077263/downloads/COD_5e_Greencard.pdf).
+The implementation matches the instruction class (`R`, `I` and `J`), and implements the corresponding state transition according to [MIPS Greencard](https://booksite.elsevier.com/9780124077263/downloads/COD_5e_Greencard.pdf).
 
-The `eval` definition caters for the transitive behavior by computing next state (`inst_eval`) and recursively calling `eval`. Termination is ensured by the `fuel` parameter that monotonically decrease for each instruction evaluation. Execution will be aborted in case either of memory accesses out of bounds.
+The `eval` definition caters for the transitive behavior by computing next state (`inst_eval`) and recursively calling `eval`. Termination is ensured by the `fuel` parameter that monotonically decrease for each instruction evaluation. Execution will be aborted in case either of the instruction or data memory accesses are out of bounds.
 
 Examples of use are found in [LeanVips/Basic.lean](./LeanVips/Basic.lean).
 
@@ -250,7 +250,7 @@ Examples of use are found in [LeanVips/Basic.lean](./LeanVips/Basic.lean).
 
 In order to interact with the environment serialization (`toBv32`), and deserialization (`fromBv32`) are implemented in [LeanVips/SerDe.Basic.lean](./LeanVips/SerDe/Basic.lean). 
 
-Symmetry/reversibility is proven:
+Formally, the assembly representation and the binary machine code forms a bijective relation (one-to-one correspondence).
 
 ```lean
 theorem tofrom (i: Instr) : fromBv32 (toBv32 i) = i 

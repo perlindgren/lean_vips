@@ -11,6 +11,7 @@
         "imem",
         "regfile",
         "slti",
-        "succint"
+        "succint",
+        "tofrom"
     ]
 }
