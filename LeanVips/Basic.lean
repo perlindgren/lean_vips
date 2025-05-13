@@ -13,8 +13,8 @@ namespace LeanVips
 #eval (toBv32 (ori  t0 t1 0xffff))
 #eval (toBv32 (addi t0 t1 (-1)))
 #eval (toBv32 (slti t0 t1 5))
-#eval (toBv32 (lw   t0 t1 16))
-#eval (toBv32 (sw   t0 zero 0))
+#eval (toBv32 (lw   t0 16 t1))
+#eval (toBv32 (sw   t0 0 t1))
 #eval (toBv32 (beq  t0 t1 2))
 #eval (toBv32 (beq  t0 t1 (-1)))
 #eval (toBv32 (j    0x123_4567))
@@ -132,3 +132,29 @@ theorem prog_sum_proof : ∀ (rf : Regfile) (dm: DMem) (n f: Nat),
   := by
     simp [eval, imem_sum, instr_eval, IMem.r, Regfile.w, Regfile.r, at', t0, t1, t2, zero]
     sorry
+
+def dm_data : DMem := #[
+  1, -- 00
+  2, -- 04
+  3, -- 08
+  4, -- 0c
+]
+
+def imem_dm :=
+  #[
+  lw t0   0x0 zero   ,-- lw t0 0x0(zero)
+  lw t1   0x4 zero   ,--
+  lw t2   0x8 zero   ,--
+  lw t3   0xc zero   ,--
+
+  sw t0   0xc zero   ,-- sw t0 0x0(zero)
+  sw t1   0x8 zero   ,--
+  sw t2   0x4 zero   ,--
+  sw t3   0x0 zero   ,--
+
+  beq zero zero  (-1) ,-- loop:   b loop:
+  ]
+
+#eval
+  let (rf, dm, pc) := eval imem_dm 25 0x00 rf dm_data
+  (rf[t0.toNat], rf[t1.toNat], rf[t2.toNat], rf[t3.toNat], dm)

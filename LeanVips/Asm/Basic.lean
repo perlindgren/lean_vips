@@ -24,7 +24,7 @@ inductive I where
   | sw   : I
   | beq  : I
   | bne  : I
-deriving Repr, BEq
+deriving Repr
 
 inductive Instr where
   | i (instr: I) (rs rt: Reg) (imm: Bv16) : Instr

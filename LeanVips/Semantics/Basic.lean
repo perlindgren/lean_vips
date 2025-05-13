@@ -31,7 +31,7 @@ def instr_eval (instr: Instr) (pc: Bv32) (rf:Regfile) (dm: DMem):Regfile × DMem
      | .add => rf.w rd (a + b)
      | .sub => rf.w rd (a - b)
      | .slt => rf.w rd (if a < b then 1 else 0), dm, pc)
-  | .i .sw  rs rt imm16 => (rf, dm.w (rf.r rs + imm16.signExtend _) (rf.r rt), pc)
+  | .i .sw  rs rt imm16 => (rf, dm.w ((rf.r rs + imm16.signExtend _).ushiftRight 2) (rf.r rt), pc)
   | .i .beq rs rt imm16 => (rf, dm, if rf.r rs == rf.r rt then pc + (imm16.signExtend _ <<< 2) else pc)
   | .i .bne rs rt imm16 => (rf, dm, if rf.r rs != rf.r rt then pc + (imm16.signExtend _ <<< 2) else pc)
   | .i op rs rt imm16 => -- I type instructions
@@ -41,7 +41,7 @@ def instr_eval (instr: Instr) (pc: Bv32) (rf:Regfile) (dm: DMem):Regfile × DMem
     | .ori  => rf.w rt (a ||| imm16.zeroExtend _)
     | .addi => rf.w rt (a + imm16.signExtend _)
     | .slti => rf.w rt (if a < imm16.signExtend _ then 1 else 0)
-    | .lw   => rf.w rt (dm.r (a + imm16.signExtend _))
+    | .lw   => rf.w rt (dm.r ((a + imm16.signExtend 32).ushiftRight 2))
     | _     => unreachable!
     , dm, pc)
   | .j imm26 => (rf, dm, (pc &&& 0xF000_0000: Bv32) ||| (imm26.zeroExtend _ <<< 2))
