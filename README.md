@@ -15,7 +15,7 @@ code .
 
 Follow [Setting up Lean](https://lean-lang.org/documentation/setup/), to install Lean support on your system.
 
-## Quick Use (Assuming no prior Lean experience)
+## Quick Use 
 
 Open the `LeanVips/Basic.lean`file in VsCode.
 
