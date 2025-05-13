@@ -146,8 +146,7 @@ def dm_data : DMem := #[
   4, -- 0c
 ]
 
-def imem_dm :=
-  #[
+def imem_dm := #[
   lw t0   0x0 zero   ,-- lw t0 0x0(zero)
   lw t1   0x4 zero   ,--
   lw t2   0x8 zero   ,--
@@ -158,9 +157,29 @@ def imem_dm :=
   sw t2   0x4 zero   ,--
   sw t3   0x0 zero   ,--
 
-  beq zero zero  (-1) ,-- loop:   b loop:
-  ]
+  beq zero zero (-1) ,-- loop:   b loop:
+]
 
 #eval
   let (rf, dm, pc) := eval imem_dm 25 0x00 rf dm_data
-  (rf[t0.toNat], rf[t1.toNat], rf[t2.toNat], rf[t3.toNat], dm)
+  (rf[t0.toNat], rf[t1.toNat], rf[t2.toNat], rf[t3.toNat], dm, pc)
+
+
+-- The above example sets the initial data memory content to [1,2,3,4],
+-- reads the first 4 words to registers t0, t1, t2, t3 respectively,
+-- and writes the registers to memory in reversed order.
+-- Registers t0, t1, t2, and t3, the dm and pc are shown as results of evaluation
+
+def imem_dm2 := #[
+  lw t0   0x0c zero  ,-- lw t0 0x0c(zero), value 4
+  lw t1   (-0x04) t0 ,-- lw t1 (-0x04)(t0), address 0, value 1
+  beq zero zero (-1) ,-- loop:   b loop:
+]
+
+#eval
+  let (rf, _dm, _pc) := eval imem_dm2 5 0x00 rf dm_data
+  (rf[t0.toNat], rf[t1.toNat])
+
+-- The above example, reads the address 0x04 (value 4) from data memory into t0
+-- Read, the address (-0x04) (t0), (address 0), with value 1 into t1
+-- Registers t0 and t1 are shown as the result of evaluation
