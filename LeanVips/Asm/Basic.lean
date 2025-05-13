@@ -44,8 +44,8 @@ deriving Repr, Inhabited
 @[match_pattern] def ori  (rt rs: Reg) (imm16: Bv16): Instr := .i .ori  rs rt imm16
 @[match_pattern] def addi (rt rs: Reg) (imm16: Bv16): Instr := .i .addi rs rt imm16
 @[match_pattern] def slti (rt rs: Reg) (imm16: Bv16): Instr := .i .slti rs rt imm16
-@[match_pattern] def lw   (rt rs: Reg) (imm16: Bv16): Instr := .i .lw   rs rt imm16
-@[match_pattern] def sw   (rt rs: Reg) (imm16: Bv16): Instr := .i .sw   rs rt imm16
+@[match_pattern] def lw   (rt: Reg)    (imm16: Bv16) (rs: Reg): Instr := .i .lw   rs rt imm16
+@[match_pattern] def sw   (rt: Reg)    (imm16: Bv16) (rs: Reg): Instr := .i .sw   rs rt imm16
 @[match_pattern] def beq  (rt rs: Reg) (imm16: Bv16): Instr := .i .beq  rs rt imm16
 @[match_pattern] def bne  (rt rs: Reg) (imm16: Bv16): Instr := .i .bne  rs rt imm16
 @[match_pattern] def j                 (imm26: Bv26): Instr := .j             imm26
@@ -72,11 +72,11 @@ theorem slti_equal_quant: ∀ (rs rt imm16), slti rt rs imm16 = Instr.i I.slti r
   by
    simp [slti]
 
-theorem lw_equal_quant: ∀ (rs rt imm16), lw rt rs imm16 = Instr.i I.lw rs rt imm16 :=
+theorem lw_equal_quant: ∀ (rs rt imm16), lw rt imm16 rs = Instr.i I.lw rs rt imm16 :=
   by
    simp [lw]
 
-theorem sw_equal_quant: ∀ (rs rt imm16), sw rt rs imm16 = Instr.i I.sw rs rt imm16 :=
+theorem sw_equal_quant: ∀ (rs rt imm16), sw rt imm16 rs = Instr.i I.sw rs rt imm16 :=
   by
    simp [sw]
 
