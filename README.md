@@ -25,7 +25,7 @@ In the `Lean InfoView`should now see the current status (state) of Lean, reflect
 
 ### Evaluation
 
-Put your cursor at the end of line 7. 
+Put your cursor at the end of line as shown below: 
 
 ```lean
 #eval toBv32 (and  t0 t1 t2) [Cursor here] 
@@ -41,7 +41,10 @@ The `#32` indicate that the resulting value is a 32-bit bit vector (more on `Bit
 
 You can try neighboring lines, and see the translation to binary for other instructions and/or change the *mnemonic* or *operands* (the *rd*, *rs*, *rt* arguments) to obtain the corresponding machine code. Hint, you can use this later for your lab5 programming exercise.
 
-Now, put your cursor at the end of line 39.
+Now, put your cursor at the end of line:
+```lean
+#eval eval imem 9 0x00 rf dm -- [your cursor here]
+```
 
 Lean will show the result of evaluating the `eval` definition (function) as a tuple of three values `(RegisterFile,  DMem, Bv32)`. The first `RegisterFile` is the resulting register file (an array of 32 words), second `DMem` is the data memory (dynamic array being empty in this case) and third and last `Bv32` is the value of the program counter register.
 
@@ -59,8 +62,14 @@ Looking at the arguments of `eval imem 9 0x00 rf dm`.
   ```
 - `9`is the number of simulation steps we want to run (in this case 9).
 - `0x00`is the initial value for the `pc` register (the instruction memory starts at address 0x00).
-- `rf`is the initial state of the register file, declared at line 36 to be a vector of 32, 0 valued words.
-- `dm`is the initial state of the data memory, declared at line 37 as an empty array.
+- `rf`is the initial state of the register file, declared to be a vector of 32, 0 valued words.
+  ```lean
+  def rf:  Regfile := Vector.mkVector 32 0
+  ```
+- `dm`is the initial state of the data memory, declared as an empty array.
+  ```lean
+  def dm : DMem := #[]
+  ```
 
 The state after simulating 9 instructions is presented as the tuple:
 
