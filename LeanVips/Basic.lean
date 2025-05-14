@@ -114,8 +114,8 @@ def imem_sum :=
   addi t0   zero 0x4  ,--00 m = n + 1
   addi t1   zero 0x0  ,--04 sum = 0
   addi t2   zero 0x0  ,--08 i = 0
-  slt  at'  t2   t0   ,--0c i < m
-  beq  at'  zero 3    ,--10 for: !(i < m) -> end
+  slt  at'  t2   t0   ,--0c for: i < m
+  beq  at'  zero 3    ,--10   if !(i < m) -> end
   add  t1   t1   t2   ,--14   sum = sum + i
   addi t2   t2   1    ,--18   i = i + 1
   j    3              ,--1c   j for:
