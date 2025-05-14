@@ -1,7 +1,9 @@
 import LeanVips.Semantics.Basic
 import LeanVips.SerDe.Basic
 
-namespace LeanVips
+namespace LeanVips.Instr
+
+open Reg
 
 -- serialization examples
 #eval toBv32 (and  t0 t1 t2)
@@ -36,7 +38,7 @@ def imem : IMem := #[
 def rf:  Regfile := Vector.mkVector 32 0
 def dm : DMem := #[]
 
-#eval (eval imem 9 0x00 rf dm) -- [your cursor here]
+#eval eval imem 9 0x00 rf dm -- [your cursor here]
 
 #eval -- [place cursor here]
   let (rf, _, pc) := eval imem 9 0x00 rf dm -- state after executing 9 instructions
@@ -45,7 +47,7 @@ def dm : DMem := #[]
 -- lets try some simple proofs by (symbolic) execution
 def imem_p1 :=
   #[
-  addi t0 t0 0x20,   --00
+  addi t0 t0 0x20, -- instruction at address 0x00
   ]
 
 -- prove that the pc is 0x04 after executing one clock cycle
@@ -94,7 +96,7 @@ def sum (n:Nat) : Nat :=
   | 0     => 0
   | n + 1 => n + 1 + (sum n)
 
-#eval (sum 3) -- 3 + 2 + 1 = 6
+#eval sum 3 -- 3 + 2 + 1 = 6
 
 -- implementation arithmetic sum
 -- let n = 3; // sum = 1 + 2 + 3 = 6

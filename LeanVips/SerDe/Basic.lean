@@ -1,7 +1,7 @@
 import LeanVips.Asm.Basic
 import Std.Tactic.BVDecide
 
-namespace LeanVips
+namespace LeanVips.Instr
 
 -- Deserialization from bit vector to instruction
 def fromBv32 (bv: Bv32) : Instr :=
@@ -247,4 +247,3 @@ theorem tofrom (i: Instr) : fromBv32 (toBv32 i) = i := by
     have jt2 : (BitVec.setWidth 26 (2#6 ++ imm) = imm) := by
       bv_decide
     rw [jt2]
-    rfl

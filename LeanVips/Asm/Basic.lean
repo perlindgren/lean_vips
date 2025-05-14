@@ -1,5 +1,4 @@
 import LeanVips.Reg.Basic
-import Std.Tactic.BVDecide
 
 namespace LeanVips
 
@@ -32,23 +31,25 @@ inductive Instr where
   | j (imm26: Bv26) : Instr
 deriving Repr, Inhabited
 
+namespace Instr
+open Reg
 #check Instr.i I.andi t0 t1 42
 
 -- Instruction assembly shorthands
-@[match_pattern] def and  (rd rs rt: Reg) : Instr := .r .and rs rt rd
-@[match_pattern] def or   (rd rs rt: Reg) : Instr := .r .or  rs rt rd
-@[match_pattern] def add  (rd rs rt: Reg) : Instr := .r .add rs rt rd
-@[match_pattern] def sub  (rd rs rt: Reg) : Instr := .r .sub rs rt rd
-@[match_pattern] def slt  (rd rs rt: Reg) : Instr := .r .slt rs rt rd
-@[match_pattern] def andi (rt rs: Reg) (imm16: Bv16): Instr := .i .andi rs rt imm16
-@[match_pattern] def ori  (rt rs: Reg) (imm16: Bv16): Instr := .i .ori  rs rt imm16
-@[match_pattern] def addi (rt rs: Reg) (imm16: Bv16): Instr := .i .addi rs rt imm16
-@[match_pattern] def slti (rt rs: Reg) (imm16: Bv16): Instr := .i .slti rs rt imm16
-@[match_pattern] def lw   (rt: Reg)    (imm16: Bv16) (rs: Reg): Instr := .i .lw   rs rt imm16
-@[match_pattern] def sw   (rt: Reg)    (imm16: Bv16) (rs: Reg): Instr := .i .sw   rs rt imm16
-@[match_pattern] def beq  (rt rs: Reg) (imm16: Bv16): Instr := .i .beq  rs rt imm16
-@[match_pattern] def bne  (rt rs: Reg) (imm16: Bv16): Instr := .i .bne  rs rt imm16
-@[match_pattern] def j                 (imm26: Bv26): Instr := .j             imm26
+@[match_pattern] def and  (rd rs rt: Reg) : Instr := r .and rs rt rd
+@[match_pattern] def or   (rd rs rt: Reg) : Instr := r .or  rs rt rd
+@[match_pattern] def add  (rd rs rt: Reg) : Instr := r .add rs rt rd
+@[match_pattern] def sub  (rd rs rt: Reg) : Instr := r .sub rs rt rd
+@[match_pattern] def slt  (rd rs rt: Reg) : Instr := r .slt rs rt rd
+@[match_pattern] def andi (rt rs: Reg) (imm16: Bv16): Instr := i .andi rs rt imm16
+@[match_pattern] def ori  (rt rs: Reg) (imm16: Bv16): Instr := i .ori  rs rt imm16
+@[match_pattern] def addi (rt rs: Reg) (imm16: Bv16): Instr := i .addi rs rt imm16
+@[match_pattern] def slti (rt rs: Reg) (imm16: Bv16): Instr := i .slti rs rt imm16
+@[match_pattern] def lw   (rt: Reg)    (imm16: Bv16) (rs: Reg): Instr := i .lw   rs rt imm16
+@[match_pattern] def sw   (rt: Reg)    (imm16: Bv16) (rs: Reg): Instr := i .sw   rs rt imm16
+@[match_pattern] def beq  (rt rs: Reg) (imm16: Bv16): Instr := i .beq  rs rt imm16
+@[match_pattern] def bne  (rt rs: Reg) (imm16: Bv16): Instr := i .bne  rs rt imm16
+-- @[match_pattern] def j                 (imm26: Bv26): Instr := .j            imm26
 
 #check andi t1 t1 42
 
@@ -111,3 +112,26 @@ theorem slt_equal_quant: ∀ (rs rt rd), slt rd rs rt = Instr.r R.slt rs rt rd :
 theorem j_equal_quant: ∀ (imm26), j imm26 = Instr.j imm26 :=
   by
    simp [j]
+
+def toString (instr: Instr) : String :=
+  match instr with
+  | and  rd rs rt    => s!"and  {rd.toString} {rs.toString} {rt.toString}"
+  | or   rd rs rt    => s!"or   {rd.toString} {rs.toString} {rt.toString}"
+  | add  rd rs rt    => s!"add  {rd.toString} {rs.toString} {rt.toString}"
+  | sub  rd rs rt    => s!"sub  {rd.toString} {rs.toString} {rt.toString}"
+  | slt  rd rs rt    => s!"slt  {rd.toString} {rs.toString} {rt.toString}"
+  | andi rt rs imm16 => s!"andi {rt.toString} {rs.toString} {imm16}"
+  | ori  rt rs imm16 => s!"ori  {rt.toString} {rs.toString} {imm16}"
+  | addi rt rs imm16 => s!"addi {rt.toString} {rs.toString} {imm16}"
+  | slti rt rs imm16 => s!"slti {rt.toString} {rs.toString} {imm16}"
+  | lw   rt imm16 rs => s!"lw   {rt.toString} {imm16}({rs.toString})"
+  | sw   rt imm16 rs => s!"lw   {rt.toString} {imm16}({rs.toString})"
+  | beq  rt rs imm16 => s!"beq  {rt.toString} {rs.toString} {imm16}"
+  | bne  rt rs imm16 => s!"bne  {rt.toString} {rs.toString} {imm16}"
+  | j    imm26       => s!"j    {imm26}"
+
+#eval t0
+#eval t0.toString
+#eval toString (and t0 t1 t2)
+#eval (and t0 t1 t2).toString
+#eval (j 0x0000_000f).toString

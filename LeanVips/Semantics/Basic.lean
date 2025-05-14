@@ -3,6 +3,8 @@ import Std.Tactic.BVDecide
 
 namespace LeanVips
 
+open Reg
+
 -- Instruction memory
 abbrev IMem : Type := Array Instr
 deriving instance Repr for IMem
