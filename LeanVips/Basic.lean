@@ -42,7 +42,7 @@ def dm : DMem := #[]
 
 #eval -- [place cursor here]
   let (rf, _, pc) := eval imem 9 0x00 rf dm -- state after executing 9 instructions
-  (pc, rf[t0.toNat], rf[t1.toNat], rf[t2.toNat], rf[t3.toNat], rf[t4.toNat], rf[t5.toNat])
+  (pc, rf[t0], rf[t1], rf[t2], rf[t3], rf[t4], rf[t5])
 
 -- lets try some simple proofs by (symbolic) execution
 def imem_p1 :=
@@ -61,9 +61,9 @@ theorem prog1 : ∀ (rf : Regfile) (dm: DMem),
 -- notice the value might have overflowed (we have wrapping arithmetics)
 theorem prog1b : ∀ (rf : Regfile) (dm: DMem),
     let (rf', _dm', _pc') := eval imem_p1 1 0x00 rf dm
-    rf'[t0.toNat] = (rf[t0.toNat] + 0x20)
+    rf'[t0] = rf[t0] + 0x20
   := by
-    simp [eval, imem_p1, instr_eval, IMem.r, Regfile.w, Regfile.r, t0, zero]
+    simp [eval, instr_eval, IMem.r, imem_p1, Regfile.w, Regfile.r, t0,zero, Vector.get]
 
 -- a bit more complex, here we first update t1 and based on that t2
 def imem_p2 :=
@@ -75,9 +75,18 @@ def imem_p2 :=
 -- prove the value of t1 after 2 clock cycles
 theorem prog2 : ∀ (rf : Regfile) (dm: DMem),
     let (rf', _dm', _pc') := eval imem_p2 2 0x00 rf dm
-    rf'[t1.toNat] = (rf[t0.toNat] + 0x20)
+    rf'[t1] = (rf[t0] + 0x20)
   := by
-    simp [eval, imem_p2, instr_eval, IMem.r, Regfile.w, Regfile.r, t0, t1, t2, zero]
+    simp [eval, instr_eval, IMem.r, imem_p2, Regfile.w, Regfile.r, t0, t1, t2, zero]
+    simp [Vector.set, Vector.get]
+
+
+    sorry
+
+
+
+
+    -- simp [eval, imem_p2, instr_eval, IMem.r, Regfile.w, Regfile.r, t0, t1, t2, zero]
 
 -- prove the value of t2 after 2 clock cycles
 -- this should now be initial t0 + 0x40
@@ -126,9 +135,11 @@ def imem_sum :=
   let (rf, _, pc) := (eval imem_sum 26 0x00 rf dm)
   (rf[t1.toNat], pc)
 
+-- set_option maxHeartbeats 1000_000
+
 theorem prog_sum : ∀ (rf : Regfile) (dm: DMem),
     let (rf', _dm', _pc') := eval imem_sum 26 0x00 rf dm
-    rf'[t1.toNat] = 1+2+3
+    rf'[t1] = 1+2+3
   := by
     simp [eval, imem_sum, instr_eval, IMem.r, Regfile.w, Regfile.r, at', t0, t1, t2, zero]
 
@@ -172,7 +183,7 @@ def imem_dm := #[
 
 #eval
   let (rf, dm, pc) := eval imem_dm 25 0x00 rf dm_data
-  (rf[t0.toNat], rf[t1.toNat], rf[t2.toNat], rf[t3.toNat], dm, pc)
+  (rf[t0], rf[t1], rf[t2], rf[t3], dm, pc)
 
 
 -- The above example sets the initial data memory content to [1,2,3,4],

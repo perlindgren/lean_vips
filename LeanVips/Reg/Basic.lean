@@ -45,8 +45,11 @@ namespace Reg
 
 abbrev Regfile : Type := Vector Bv32 32
 
+--instance : GetElem (Vector α n) Nat α fun _ i => i < n where
+--   getElem xs i h := get xs ⟨i, h⟩
+
 def Regfile.w (rf: Regfile) (r: Reg) (v: Bv32) : Regfile :=
-  rf.set r.toNat v
+  rf.set r.toFin v
 
 -- def Regfile.r (rf: Regfile) (r: Reg) : Bv32 :=
 --   match r with
@@ -58,7 +61,15 @@ def Regfile.r (rf: Regfile) (r: Reg) : Bv32 :=
   if r = zero then
     0
   else
-    rf[r.toNat]
+    rf.get r.toFin
+
+instance : GetElem Regfile Reg Bv32 (fun _ _ => True) where
+   getElem rf r _ :=  rf.r r
+
+@[simp] theorem get_elem : ∀ (rf : Regfile) (r:Reg), rf[r] = rf.r r := by
+  simp [getElem]
+
+
 
 def toString (r : Reg) : String :=
   match r with
