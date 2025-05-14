@@ -25,7 +25,7 @@ In the `Lean InfoView`should now see the current status (state) of Lean, reflect
 
 ### Evaluation
 
-Put your cursor at the end of line 8. 
+Put your cursor at the end of line 7. 
 
 ```lean
 #eval toBv32 (and  t0 t1 t2) [Cursor here] 
@@ -34,43 +34,39 @@ Put your cursor at the end of line 8.
 In the `Info View` you should se the machine code (in binary hex) representation of the `and t0 t1 t2` Vips instruction, like this:
 
 ```lean
-Basic.lean:8:30
+Basic.lean:7:28
   0x012a4024#32
 ```
 The `#32` indicate that the resulting value is a 32-bit bit vector (more on `BitVec` later). 
 
 You can try neighboring lines, and see the translation to binary for other instructions and/or change the *mnemonic* or *operands* (the *rd*, *rs*, *rt* arguments) to obtain the corresponding machine code. Hint, you can use this later for your lab5 programming exercise.
 
-Now, put your cursor at the end of line 37.
+Now, put your cursor at the end of line 39.
 
-```lean
-#eval eval imem 9 0x00 rf dm [your cursor here]
-```
-
-Lean will show the result of evaluating the `eval` definition (function) as a tuple of three values `(RegisterFile,  DMem, Bv32)`. The first `RegisterFile` is the resulting register file (an array of 32 words), second `DMem` is the data memory (dynamic array being empty in this case) and third and last, the value of the program counter register.
+Lean will show the result of evaluating the `eval` definition (function) as a tuple of three values `(RegisterFile,  DMem, Bv32)`. The first `RegisterFile` is the resulting register file (an array of 32 words), second `DMem` is the data memory (dynamic array being empty in this case) and third and last `Bv32` is the value of the program counter register.
 
 Looking at the arguments of `eval imem 9 0x00 rf dm`. 
 - `imem`is the instruction memory definition (our program to execute)
   ```
-  bne  t1 zero 4,    --00 -- if t1 != 0 brach to 14
-  addi t0 t0 0x20,   --04
-  addi t1 t0 (-1),   --08
-  slt  t2 t0 t1,     --0c
+  bne  t2 zero 4,    --00 -- if t2 != 0 brach to 14
+  addi t0 t0 0x20,   --04 -- t0 <- 0x20
+  addi t1 t0 (-1),   --08 -- t1 <- 0x1f
+  slt  t2 t1 t0,     --0c -- t2 <- 0x1f < 0x20
   j    0,            --10 -- jump to address 0
-  slt  t3 t1 t0,     --14
-  andi t4 t3 0xFFFF, --18
-  ori  t5 t3 0xFFFF  --20
+  slt  t3 t0 t1,     --14 -- t3 <- 0x20 < 0x1f
+  andi t4 t1 0xF00F, --18 -- t4 <- 0x0000_000f
+  ori  t5 t1 0xF00F  --20 -- t5 <- 0x0000_f00f
   ```
 - `9`is the number of simulation steps we want to run (in this case 9).
 - `0x00`is the initial value for the `pc` register (the instruction memory starts at address 0x00).
-- `rf`is the initial state of the register file, declared at line 34 to be a vector of 32, 0 valued words.
-- `dm`is the initial state of the data memory, declared at line 35 as empty.
+- `rf`is the initial state of the register file, declared at line 36 to be a vector of 32, 0 valued words.
+- `dm`is the initial state of the data memory, declared at line 37 as an empty array.
 
 The state after simulating 9 instructions is presented as the tuple:
 
 ```lean
 ({ toArray := #[0x00000000#32, 0x00000000#32, 0x00000000#32, 0x00000000#32, 0x00000000#32, 0x00000000#32, 0x00000000#32,
-                0x00000000#32, 0x00000020#32, 0x0000001f#32, 0x00000000#32, 0x00000001#32, 0x00000001#32, 0x0000ffff#32,
+                0x00000000#32, 0x00000020#32, 0x0000001f#32, 0x00000001#32, 0x00000000#32, 0x0000000f#32, 0x0000f01f#32,
                 0x00000000#32, 0x00000000#32, 0x00000000#32, 0x00000000#32, 0x00000000#32, 0x00000000#32, 0x00000000#32,
                 0x00000000#32, 0x00000000#32, 0x00000000#32, 0x00000000#32, 0x00000000#32, 0x00000000#32, 0x00000000#32,
                 0x00000000#32, 0x00000000#32, 0x00000000#32, 0x00000000#32],
@@ -79,9 +75,17 @@ The state after simulating 9 instructions is presented as the tuple:
  0x00000020#32)
 ```
 
-Now we can look closer at the resulting register file. `rf[t0]` (the 8th element) holds the value `0x20` (as a result of `addi t0 t0 0x20`), `rf[t1]` (the 9th element) holds the value `0x1f` (as a result of `addi t1 t0 (-1)`), etc.
+Now we can look closer at the resulting register file. `rf[t0]` (the 9th element) holds the value `0x20` (as a result of `addi t0 t0 0x20`), `rf[t1]` (the 9th element) holds the value `0x1f` (as a result of `addi t1 t0 (-1)`), etc.
 
 The data memory is untouched, so still `#[]`, while the resulting `pc` has the value `0x20`, which corresponds to the address of the last instruction of the program.
+
+We can also pick the result apart like this:
+
+```lean
+#eval -- [place cursor here]
+  let (rf, _dm, pc) := eval imem 9 0x00 rf dm -- state after executing 9 instructions
+  (pc, rf[t0.toNat], rf[t1.toNat], rf[t2.toNat], rf[t3.toNat], rf[t4.toNat], rf[t5.toNat])
+```
 
 Now, you can try increase the number of instructions to simulate to 10.
 

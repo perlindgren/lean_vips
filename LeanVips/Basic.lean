@@ -1,6 +1,5 @@
 import LeanVips.Semantics.Basic
 import LeanVips.SerDe.Basic
-import Std.Tactic.BVDecide
 
 namespace LeanVips
 
@@ -10,7 +9,8 @@ namespace LeanVips
 #eval toBv32 (add  t0 t1 t2)
 #eval toBv32 (sub  t0 t1 t2)
 #eval toBv32 (andi t0 t1 0)
-#eval toBv32 (ori  t0 t1 0xffff)
+#eval toBv32 (ori  t1 t1 0xfff0)
+#eval toBv32 (ori  t0 t1 0xfff0)
 #eval toBv32 (addi t0 t1 (-1))
 #eval toBv32 (slti t0 t1 5)
 #eval toBv32 (lw   t0 16 t1)
@@ -18,23 +18,29 @@ namespace LeanVips
 #eval toBv32 (beq  t0 t1 2)
 #eval toBv32 (beq  t0 t1 (-1))
 #eval toBv32 (j    0x123_4567)
+-- #eval fromBv32 (0b000100100100101)
 
 def imem : IMem := #[
-  bne  t1 zero 4,    --00 -- if t1 != 0 brach to 14
-  addi t0 t0 0x20,   --04
-  addi t1 t0 (-1),   --08
-  slt  t2 t0 t1,     --0c
+  bne  t2 zero 4,    --00 -- if t2 != 0 brach to 14
+  addi t0 t0 0x20,   --04 -- t0 <- 0x20
+  addi t1 t0 (-1),   --08 -- t1 <- 0x1f
+  slt  t2 t1 t0,     --0c -- t2 <- 0x1f < 0x20
   j    0,            --10 -- jump to address 0
-  slt  t3 t1 t0,     --14
-  andi t4 t3 0xFFFF, --18
-  ori  t5 t3 0xFFFF  --20
+  slt  t3 t0 t1,     --14 -- t3 <- 0x20 < 0x1f
+  andi t4 t1 0xF00F, --18 -- t4 <- 0x0000_000f
+  ori  t5 t1 0xF00F  --20 -- t5 <- 0x0000_f01f
+                     --20
 ]
 
 -- we define an initial state for our VM
 def rf:  Regfile := Vector.mkVector 32 0
 def dm : DMem := #[]
 
-#eval eval imem 9 0x00 rf dm -- state after executing 9 instructions
+#eval (eval imem 9 0x00 rf dm) -- [your cursor here]
+
+#eval -- [place cursor here]
+  let (rf, _, pc) := eval imem 9 0x00 rf dm -- state after executing 9 instructions
+  (pc, rf[t0.toNat], rf[t1.toNat], rf[t2.toNat], rf[t3.toNat], rf[t4.toNat], rf[t5.toNat])
 
 -- lets try some simple proofs by (symbolic) execution
 def imem_p1 :=
@@ -114,11 +120,13 @@ def imem_sum :=
   beq  zero zero (-1) ,--20 end: b end
   ]
 
-#eval (eval imem_sum 25 0x00 rf dm).fst[t1.toNat]
+#eval
+  let (rf, _, pc) := (eval imem_sum 26 0x00 rf dm)
+  (rf[t1.toNat], pc)
 
 theorem prog_sum : ∀ (rf : Regfile) (dm: DMem),
-    let (rf', _dm', _pc') := eval imem_sum 25 0x00 rf dm
-    rf'[t1.toNat] = 6
+    let (rf', _dm', _pc') := eval imem_sum 26 0x00 rf dm
+    rf'[t1.toNat] = 1+2+3
   := by
     simp [eval, imem_sum, instr_eval, IMem.r, Regfile.w, Regfile.r, at', t0, t1, t2, zero]
 
