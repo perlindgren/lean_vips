@@ -25,19 +25,19 @@ def DMem.r (dm: DMem) (addr: Bv32) : Bv32 :=
 def instr_eval (instr: Instr) (pc: Bv32) (rf:Regfile) (dm: DMem):Regfile × DMem × Bv32 :=
   match instr  with
   | .r op rs rt rd => -- R type instructions
-     let a := rf.r rs
-     let b := rf.r rt
+     let a := rf[rs]
+     let b := rf[rt]
      (match op with
      | .and => rf.w rd (a &&& b)
      | .or  => rf.w rd (a ||| b)
      | .add => rf.w rd (a + b)
      | .sub => rf.w rd (a - b)
      | .slt => rf.w rd (if a < b then 1 else 0), dm, pc)
-  | .i .sw  rs rt imm16 => (rf, dm.w ((rf.r rs + imm16.signExtend _).ushiftRight 2) (rf.r rt), pc)
-  | .i .beq rs rt imm16 => (rf, dm, if rf.r rs == rf.r rt then pc + (imm16.signExtend _ <<< 2) else pc)
-  | .i .bne rs rt imm16 => (rf, dm, if rf.r rs != rf.r rt then pc + (imm16.signExtend _ <<< 2) else pc)
+  | .i .sw  rs rt imm16 => (rf, dm.w ((rf[rs] + imm16.signExtend _).ushiftRight 2) (rf[rt]), pc)
+  | .i .beq rs rt imm16 => (rf, dm, if rf[rs] == rf[rt] then pc + (imm16.signExtend _ <<< 2) else pc)
+  | .i .bne rs rt imm16 => (rf, dm, if rf[rs] != rf[rt] then pc + (imm16.signExtend _ <<< 2) else pc)
   | .i op rs rt imm16 => -- I type instructions
-    let a := rf.r rs
+    let a := rf[rs]
     (match op with
     | .andi => rf.w rt (a &&& imm16.zeroExtend _)
     | .ori  => rf.w rt (a ||| imm16.zeroExtend _)
