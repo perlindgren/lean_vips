@@ -35,7 +35,7 @@ def imem : IMem := #[
 ]
 
 -- we define an initial state for our VM
-def rf:  Regfile := Vector.mkVector 32 0
+def rf:  Regfile := Vector.replicate 32 0
 def dm : DMem := #[]
 
 #eval eval imem 9 0x00 rf dm -- [your cursor here]
@@ -126,13 +126,21 @@ def imem_sum :=
   let (rf, _, pc) := (eval imem_sum 26 0x00 rf dm)
   (rf[t1.toNat], pc)
 
--- set_option maxHeartbeats 1000_000
+-- set_option maxHeartbeats 100_000
 
 theorem prog_sum : ∀ (rf : Regfile) (dm: DMem),
+    let rf := Vector.replicate 32 0
+    -- let dm := #[]
     let (rf', _dm', _pc') := eval imem_sum 26 0x00 rf dm
     rf'[t1] = 1+2+3
   := by
+    -- the indexing of Regfile seems to cause some problem with the verification
+    -- in any case it is not super interesting to show for a concrete value
+    -- what we want is a general proof
+
+    -- simp [eval, imem_sum, instr_eval, IMem.r, Regfile.w, Regfile.r, at', t0, t1, t2, zero]
     simp [eval, imem_sum, instr_eval, IMem.r, Regfile.w, Regfile.r, at', t0, t1, t2, zero]
+
 
 -- We want to prove that for all n, the program computes the sum according to the specification
 -- However we have to assume:

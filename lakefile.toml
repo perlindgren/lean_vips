@@ -5,3 +5,7 @@ defaultTargets = ["LeanVips"]
 [[lean_lib]]
 name = "LeanVips"
 
+[[require]]
+name = "Cli"
+git = "https://github.com/leanprover/lean4-cli"
+rev = "v4.16.0"

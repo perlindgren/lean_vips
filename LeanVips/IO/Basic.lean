@@ -1,5 +1,5 @@
 import LeanVips.Asm.Basic
--- import LeanVips.SerDe.Basic
+import Cli
 
 namespace LeanVips.Instr
 
@@ -26,3 +26,5 @@ def progToFile (path: String) (prog: Prog) := do
 
 
 --def save (List Instr)
+
+open Cli
