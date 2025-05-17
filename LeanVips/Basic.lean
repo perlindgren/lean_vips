@@ -78,15 +78,6 @@ theorem prog2 : ∀ (rf : Regfile) (dm: DMem),
     rf'[t1] = (rf[t0] + 0x20)
   := by
     simp [eval, instr_eval, IMem.r, imem_p2, Regfile.w, Regfile.r, t0, t1, t2, zero]
-    simp [Vector.set, Vector.get]
-
-
-    sorry
-
-
-
-
-    -- simp [eval, imem_p2, instr_eval, IMem.r, Regfile.w, Regfile.r, t0, t1, t2, zero]
 
 -- prove the value of t2 after 2 clock cycles
 -- this should now be initial t0 + 0x40
