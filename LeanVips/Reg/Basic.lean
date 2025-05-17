@@ -45,6 +45,9 @@ namespace Reg
 
 abbrev Regfile : Type := Vector Bv32 32
 
+--instance : GetElem (Vector α n) Nat α fun _ i => i < n where
+--   getElem xs i h := get xs ⟨i, h⟩
+
 def Regfile.w (rf: Regfile) (r: Reg) (v: Bv32) : Regfile :=
   rf.set r.toNat v
 
@@ -59,6 +62,39 @@ def Regfile.r (rf: Regfile) (r: Reg) : Bv32 :=
     0
   else
     rf[r.toNat]
+
+instance : GetElem Regfile Reg Bv32 (fun _ _ => True) where
+   getElem rf r _ :=  rf.r r
+
+@[simp] theorem get_elem : ∀ (rf : Regfile) (r:Reg), rf[r] = rf.r r := by
+  simp [getElem]
+
+@[simp] theorem set_get_zero : ∀ (rf : Regfile), rf[zero] = 0 := by
+  simp [Regfile.r]
+
+@[simp] theorem set_get_nonzero : ∀ (rf : Regfile) (r_set r_get : Reg) (v: Bv32),
+    let rf' := rf.w r_set v
+    r_get != zero -> r_set = r_get -> rf'[r_get] = v := by
+    simp
+    intros rf rset rget v rget_not_zero hrset
+    simp [Regfile.r]
+    split
+    . contradiction
+    . simp [Regfile.w, hrset]
+
+@[simp] theorem set_get_diff : ∀ (rf : Regfile) (r_set r_get : Reg) (v: Bv32),
+    let rf' := rf.w r_set v
+    r_set != r_get -> rf'[r_get] = rf[r_get] := by
+    simp
+    intros rf  r_set r_get v rget_not_rset
+    simp [Regfile.r]
+    split
+    . simp
+    . unfold Regfile.w
+      rw [Vector.getElem_set_ne]
+      simp [<- BitVec.toNat_eq]
+      assumption
+
 
 def toString (r : Reg) : String :=
   match r with
