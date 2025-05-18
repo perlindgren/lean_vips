@@ -8,6 +8,7 @@
         "Shamt",
         "addi",
         "andi",
+        "foldr",
         "imem",
         "regfile",
         "slti",

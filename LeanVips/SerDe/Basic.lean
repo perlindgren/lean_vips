@@ -51,6 +51,17 @@ def toBv32 (instr: Instr) : Bv32 :=
   | bne  rt rs imm16 => (0x05: Op) ++ rs ++ rt ++ imm16
   | j    imm26       => (0x02: Op) ++ imm26
 
+section TestToFromBv
+
+open Reg
+
+def bv_addi := toBv32 (addi t0 t0 1)
+#eval bv_addi.toHex
+def i_bv_addi := fromBv32 bv_addi
+#eval i_bv_addi.toString
+
+end TestToFromBv
+
 -- theorem helpers
 theorem i_op : ∀ (op : Op) (rs rt : Reg) (imm: Bv16),
   BitVec.setWidth 6 ((op ++ rs ++ rt ++ imm) >>> 26) = op := by

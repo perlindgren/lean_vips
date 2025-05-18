@@ -31,7 +31,7 @@ inductive Instr where
   | j (imm26: Bv26) : Instr
 deriving Repr, Inhabited
 
-def Prog:Type := Array Instr
+def Prog : Type := Array Instr
 
 #check Prog
 

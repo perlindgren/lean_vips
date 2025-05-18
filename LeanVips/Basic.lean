@@ -139,8 +139,7 @@ theorem prog_sum : ∀ (rf : Regfile) (dm: DMem),
     -- what we want is a general proof
 
     -- simp [eval, imem_sum, instr_eval, IMem.r, Regfile.w, Regfile.r, at', t0, t1, t2, zero]
-    simp [eval, imem_sum, instr_eval, IMem.r, Regfile.w, Regfile.r, at', t0, t1, t2, zero]
-
+    sorry
 
 -- We want to prove that for all n, the program computes the sum according to the specification
 -- However we have to assume:

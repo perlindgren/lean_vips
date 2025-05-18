@@ -1,6 +1,7 @@
 name = "lean_vips"
 version = "0.1.0"
-defaultTargets = ["LeanVips"]
+#defaultTargets = ["LeanVips"]
+defaultTargets = ["vips"]
 
 [[lean_lib]]
 name = "LeanVips"
@@ -9,3 +10,7 @@ name = "LeanVips"
 name = "Cli"
 git = "https://github.com/leanprover/lean4-cli"
 rev = "v4.16.0"
+
+[[lean_exe]]
+name = "vips"
+root = "LeanVips.IO.Basic"
