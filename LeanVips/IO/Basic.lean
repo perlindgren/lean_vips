@@ -62,6 +62,7 @@ def instrOfNat (s: String) : Instr :=
   fromBv32 (parseHex! s)
 
 def fileHex (path: String) : IO Prog := do
+  dbg_trace "-- reading file {path}"
   let f ←  IO.FS.readFile path
   let il := f.split (·.isWhitespace)
   let il := il.filter (λ s => s !="")
@@ -94,10 +95,13 @@ def testCmd := `[Cli|
 ]
 
 def runExampleCmd (p : Parsed) : IO UInt32 := do
+  let verbose := p.hasFlag "verbose"
+
   if let some path := p.flag? "hex" then
-    dbg_trace "----------------------- here"
-    let s := path.as! String
-    let p ←  LeanVips.Instr.fileHex s
+    let path := path.as! String
+    if verbose then
+      dbg_trace "-- reading hex file {path}"
+    let p ←  LeanVips.Instr.fileHex path
     LeanVips.Instr.progToFile "test.asm" p
 
 
@@ -133,7 +137,7 @@ def exampleCmd : Cmd := `[Cli|
 
   FLAGS:
     verbose;                    "`--verbose` output."
-    h, hex : String;            "`--hex`, read file in hex format from the given path."
+    hex : String;               "`--hex`, read file in hex format from the given path."
     i, invert;                  "Declares a flag `--invert` with an associated short alias `-i`."
     o, optimize;                "Declares a flag `--optimize` with an associated short alias `-o`."
     p, priority : Nat;          "Declares a flag `--priority` with an associated short alias `-p` " ++
