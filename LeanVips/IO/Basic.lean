@@ -11,7 +11,7 @@ open Reg
 def progToString (prog: Prog) : String :=
   prog.foldr (λ i l => (i.toString ++ "\n" ++ l)) ""
 
-def progToBinString (prog: Prog) : String :=
+def progToHexString (prog: Prog) : String :=
   let bin := prog.foldr (λ i l => (toBv32 i) :: l) []
   bin.foldr (λ (i: Bv32) l => (i.toHex ++ "\n" ++ l)) ""
 
@@ -24,7 +24,7 @@ def p: Prog := #[
 ]
 
 #eval progToString p
-#eval progToBinString p
+#eval progToHexString p
 
 def progToFile (path: String) (prog: Prog) := do
   return ← IO.FS.writeFile path (progToString prog)
@@ -32,7 +32,7 @@ def progToFile (path: String) (prog: Prog) := do
 #eval progToFile "asm.s" p
 
 def progToBinFile (path: String) (prog: Prog) := do
-  return ← IO.FS.writeFile path (progToBinString prog)
+  return ← IO.FS.writeFile path (progToHexString prog)
 
 open Std.Internal.Parsec
 open Std.Internal.Parsec.String
@@ -61,20 +61,20 @@ def parseHex! (s: String) : Nat :=
 def instrOfNat (s: String) : Instr :=
   fromBv32 (parseHex! s)
 
-def fileBin (path: String) : IO Prog := do
+def fileHex (path: String) : IO Prog := do
   let f ←  IO.FS.readFile path
   let il := f.split (·.isWhitespace)
-  let il := if il.getLast! = "" then il.take (il.length -1) else il
+  let il := il.filter (λ s => s !="")
 
   dbg_trace il
   let prog := (il.map instrOfNat).toArray
   -- dbg_trace prog, missing ToString
   return prog
 
-#eval progToBinFile "bin.txt" p
+#eval progToBinFile "asm.hex" p
 
 #eval do
-  let prog ← fileBin "bin.txt"
+  let prog ← fileHex "asm.hex"
   dbg_trace progToString prog
   return
 
@@ -94,10 +94,17 @@ def testCmd := `[Cli|
 ]
 
 def runExampleCmd (p : Parsed) : IO UInt32 := do
-  let input   : String       := p.positionalArg! "input" |>.as! String
-  let outputs : Array String := p.variableArgsAs! String
-  IO.println <| "Input: " ++ input
-  IO.println <| "Outputs: " ++ toString outputs
+  if let some path := p.flag? "hex" then
+    dbg_trace "----------------------- here"
+    let s := path.as! String
+    let p ←  LeanVips.Instr.fileHex s
+    LeanVips.Instr.progToFile "test.asm" p
+
+
+  -- let input   : String       := p.positionalArg! "input" |>.as! String
+  -- let outputs : Array String := p.variableArgsAs! String
+  -- IO.println <| "Input: " ++ input
+  -- IO.println <| "Outputs: " ++ toString outputs
 
   if p.hasFlag "verbose" then
     IO.println "Flag `--verbose` was set."
@@ -121,11 +128,12 @@ def runExampleCmd (p : Parsed) : IO UInt32 := do
 
 
 def exampleCmd : Cmd := `[Cli|
-  vips VIA runExampleCmd; ["0.0.1"]
+  vips VIA runExampleCmd; ["1.1.0"]
   "`vips` executable model of a subset of the MIPS32 ISA."
 
   FLAGS:
-    verbose;                    "Declares a flag `--verbose`. This is the description of the flag."
+    verbose;                    "`--verbose` output."
+    h, hex : String;            "`--hex`, read file in hex format from the given path."
     i, invert;                  "Declares a flag `--invert` with an associated short alias `-i`."
     o, optimize;                "Declares a flag `--optimize` with an associated short alias `-o`."
     p, priority : Nat;          "Declares a flag `--priority` with an associated short alias `-p` " ++
@@ -137,11 +145,11 @@ def exampleCmd : Cmd := `[Cli|
                                 "that takes an argument of type `Array String`. " ++
                                 "Quotation marks allow the use of hyphens."
 
-  ARGS:
-    input : String;      "Declares a positional argument <input> " ++
-                         "that takes an argument of type `String`."
-    ...outputs : String; "Declares a variable argument <output>... " ++
-                         "that takes an arbitrary amount of arguments of type `String`."
+  -- ARGS:
+  --  input : String;      "Declares a positional argument <input> " ++
+  --                       "that takes an argument of type `String`."
+  --  ...outputs : String; "Declares a variable argument <output>... " ++
+  --                       "that takes an arbitrary amount of arguments of type `String`."
 
   SUBCOMMANDS:
     installCmd;
@@ -151,12 +159,15 @@ def exampleCmd : Cmd := `[Cli|
   -- were added as an external extension to the library.
   -- `./Cli/Extensions.lean` provides some commonly useful examples.
   EXTENSIONS:
-    author "mhuisi";
+    author "per.lindgren@ltu.se";
     defaultValues! #[("priority", "0")]
 ]
 
 def main (args : List String) : IO UInt32 :=
   exampleCmd.validate args
+
+#eval main <| "--hex asm.hex".splitOn " "
+-- #eval main <| "-h bin.hex".splitOn " "
 
 #eval main <| "-i -o -p 1 --module=Lean.Compiler --set-paths=path1,path2,path3 input output1 output2".splitOn " "
 /-
