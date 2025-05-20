@@ -12,7 +12,7 @@ inductive R where
   | add : R
   | sub : R
   | slt : R
-deriving Repr
+deriving Repr, Inhabited
 
 inductive I where
   | andi : I
@@ -23,7 +23,7 @@ inductive I where
   | sw   : I
   | beq  : I
   | bne  : I
-deriving Repr
+deriving Repr, Inhabited
 
 inductive Instr where
   | i (instr: I) (rs rt: Reg) (imm: Bv16) : Instr
@@ -141,3 +141,13 @@ def Prog : Type := Array Instr
 
 instance : ToString Prog where
   toString (prog: Prog) := prog.foldr (λ (i:Instr) l => (toString i ++ "\n" ++ l)) ""
+
+#eval zero.toString
+#eval toString (and t0 t1 t2)
+
+def p: Prog := #[
+  andi t0 t1 (-100),
+  sub  t1 t2 t0
+]
+
+#eval toString p

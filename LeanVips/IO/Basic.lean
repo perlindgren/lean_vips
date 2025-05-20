@@ -10,14 +10,10 @@ def progToHexString (prog: Prog) : String :=
   let bin := prog.foldr (λ i l => toBv32 i :: l) []
   bin.foldr (λ (i: Bv32) l => (i.toHex ++ "\n" ++ l)) ""
 
-#eval zero.toString
-#eval toString (and t0 t1 t2)
-
 def p: Prog := #[
   andi t0 t1 (-100),
   sub  t1 t2 t0
 ]
-
 #eval toString p
 #eval progToHexString p
 
