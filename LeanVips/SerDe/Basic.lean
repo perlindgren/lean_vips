@@ -58,7 +58,7 @@ open Reg
 def bv_addi := toBv32 (addi t0 t0 1)
 #eval bv_addi.toHex
 def i_bv_addi := fromBv32 bv_addi
-#eval i_bv_addi.toString
+#eval toString i_bv_addi
 
 end TestToFromBv
 

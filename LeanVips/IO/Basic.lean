@@ -3,31 +3,26 @@ import LeanVips.SerDe.Basic
 import Std.Internal.Parsec
 import Cli
 
--- section file_handling
-
 namespace LeanVips.Instr
 open Reg
 
-def progToString (prog: Prog) : String :=
-  prog.foldr (λ i l => (i.toString ++ "\n" ++ l)) ""
-
 def progToHexString (prog: Prog) : String :=
-  let bin := prog.foldr (λ i l => (toBv32 i) :: l) []
+  let bin := prog.foldr (λ i l => toBv32 i :: l) []
   bin.foldr (λ (i: Bv32) l => (i.toHex ++ "\n" ++ l)) ""
 
 #eval zero.toString
-#eval (and t0 t1 t2).toString
+#eval toString (and t0 t1 t2)
 
 def p: Prog := #[
   andi t0 t1 100,
   sub  t1 t2 t0
 ]
 
-#eval progToString p
+#eval toString p
 #eval progToHexString p
 
 def progToFile (path: String) (prog: Prog) := do
-  return ← IO.FS.writeFile path (progToString prog)
+  return ← IO.FS.writeFile path (toString prog)
 
 #eval progToFile "asm.s" p
 
@@ -61,152 +56,77 @@ def parseHex! (s: String) : Nat :=
 def instrOfNat (s: String) : Instr :=
   fromBv32 (parseHex! s)
 
-def fileHex (path: String) : IO Prog := do
+def readHexFile (path: String) : IO Prog := do
   dbg_trace "-- reading file {path}"
-  let f ←  IO.FS.readFile path
+  let f ← IO.FS.readFile path
   let il := f.split (·.isWhitespace)
   let il := il.filter (λ s => s !="")
 
   dbg_trace il
   let prog := (il.map instrOfNat).toArray
-  -- dbg_trace prog, missing ToString
+  dbg_trace "-- prog read \n{prog}"
   return prog
 
 #eval progToBinFile "asm.hex" p
 
 #eval do
-  let prog ← fileHex "asm.hex"
-  dbg_trace progToString prog
+  let prog ← readHexFile "asm.hex"
+  dbg_trace toString prog
   return
-
-end LeanVips.Instr
 
 open Cli
 
-def installCmd := `[Cli|
-  installCmd NOOP;
-  "installCmd provides an example for a subcommand without flags or arguments that does nothing. " ++
-  "Versions can be omitted."
-]
+def process_in_file (input: String) (verbose : Bool) : IO (Option Prog) := do
+  let in_file : System.FilePath := input
+  match in_file.extension with
+  | .some "s" =>
+    IO.println "not yet implemented"
+    return .none
+  | .some "hex" =>
+    if verbose then dbg_trace "-- reading hex file {input}"
+    let p ← LeanVips.Instr.readHexFile input
+    if verbose then dbg_trace "-- read {p}"
+    return .some p
+  | _ =>
+    IO.println "expected extension [.hex | .s]"
+    return .none
 
-def testCmd := `[Cli|
-  testCmd NOOP;
-  "testCmd provides another example for a subcommand without flags or arguments that does nothing."
-]
+def process_out_file (output: String) (prog: Prog) (_verbose : Bool) := do
+  let out_file : System.FilePath := output
+  match out_file.extension with
+  | .some "s"   => progToFile output prog
+  | .some "hex" => progToBinFile output prog
+  | _           => IO.println "expected extension [.hex | .s]"
 
 def runExampleCmd (p : Parsed) : IO UInt32 := do
-  let verbose := p.hasFlag "verbose"
+  let verbose : Bool := p.hasFlag "verbose"
 
-  if let some path := p.flag? "hex" then
-    let path := path.as! String
-    if verbose then
-      dbg_trace "-- reading hex file {path}"
-    let p ←  LeanVips.Instr.fileHex path
-    LeanVips.Instr.progToFile "test.asm" p
+  let input : String := p.positionalArg! "input" |>.as! String
+  if let some prog ← process_in_file input verbose then
+    let outputs : Array String := p.variableArgsAs! String
+    for output in outputs do
+      process_out_file output prog verbose
 
-
-  -- let input   : String       := p.positionalArg! "input" |>.as! String
-  -- let outputs : Array String := p.variableArgsAs! String
-  -- IO.println <| "Input: " ++ input
-  -- IO.println <| "Outputs: " ++ toString outputs
-
-  if p.hasFlag "verbose" then
-    IO.println "Flag `--verbose` was set."
-  if p.hasFlag "invert" then
-    IO.println "Flag `--invert` was set."
-  if p.hasFlag "optimize" then
-    IO.println "Flag `--optimize` was set."
-
-  let priority : Nat := p.flag! "priority" |>.as! Nat
-
-  IO.println <| "Flag `--priority` always has at least a default value: " ++ toString priority
-
-  if p.hasFlag "module" then
-    let moduleName : ModuleName := p.flag! "module" |>.as! ModuleName
-    IO.println <| s!"Flag `--module` was set to `{moduleName}`."
-
-
-  if let some setPathsFlag := p.flag? "set-paths" then
-    IO.println <| toString <| setPathsFlag.as! (Array String)
   return 0
 
-
-def exampleCmd : Cmd := `[Cli|
+def vipsCmd : Cmd := `[Cli|
   vips VIA runExampleCmd; ["1.1.0"]
   "`vips` executable model of a subset of the MIPS32 ISA."
 
   FLAGS:
     verbose;                    "`--verbose` output."
-    hex : String;               "`--hex`, read file in hex format from the given path."
-    i, invert;                  "Declares a flag `--invert` with an associated short alias `-i`."
-    o, optimize;                "Declares a flag `--optimize` with an associated short alias `-o`."
-    p, priority : Nat;          "Declares a flag `--priority` with an associated short alias `-p` " ++
-                                "that takes an argument of type `Nat`."
-    module : ModuleName;        "Declares a flag `--module` that takes an argument of type `ModuleName` " ++
-                                "which be can used to reference Lean modules like `Init.Data.Array` " ++
-                                "or Lean files using a relative path like `Init/Data/Array.lean`."
-    "set-paths" : Array String; "Declares a flag `--set-paths` " ++
-                                "that takes an argument of type `Array String`. " ++
-                                "Quotation marks allow the use of hyphens."
 
-  -- ARGS:
-  --  input : String;      "Declares a positional argument <input> " ++
-  --                       "that takes an argument of type `String`."
-  --  ...outputs : String; "Declares a variable argument <output>... " ++
-  --                       "that takes an arbitrary amount of arguments of type `String`."
+  ARGS:
+    input : String;            "<input.{hex|s}> input file path. .hex for hex input, .s for assembly"
+    ...outputs : String;       "[output.{hex|s}] output file paths. .hex for hex output, .s for assembly"
 
-  SUBCOMMANDS:
-    installCmd;
-    testCmd
-
-  -- The EXTENSIONS section denotes features that
-  -- were added as an external extension to the library.
-  -- `./Cli/Extensions.lean` provides some commonly useful examples.
   EXTENSIONS:
-    author "per.lindgren@ltu.se";
-    defaultValues! #[("priority", "0")]
+    author "per.lindgren@ltu.se"
 ]
 
 def main (args : List String) : IO UInt32 :=
-  exampleCmd.validate args
+  vipsCmd.validate args
 
-#eval main <| "--hex asm.hex".splitOn " "
--- #eval main <| "-h bin.hex".splitOn " "
-
-#eval main <| "-i -o -p 1 --module=Lean.Compiler --set-paths=path1,path2,path3 input output1 output2".splitOn " "
-/-
-Yields:
-  Input: input
-  Outputs: #[output1, output2]
-  Flag `--invert` was set.
-  Flag `--optimize` was set.
-  Flag `--priority` always has at least a default value: 1
-  Flag `--module` was set to `Lean.Compiler`.
-  #[path1, path2, path3]
--/
-
--- Short parameterless flags can be grouped,
--- short flags with parameters do not need to be separated from
--- the corresponding value.
-#eval main <| "-io -p1 input".splitOn " "
-#eval main <| "-io -p1".splitOn " "
-/-
-Yields:
-  Input: input
-  Outputs: #[]
-  Flag `--invert` was set.
-  Flag `--optimize` was set.
-  Flag `--priority` always has at least a default value: 1
--/
-
-#eval main <| "--version".splitOn " "
-/-
-Yields:
-  0.0.1
--/
-
-#eval main <| "-h".splitOn " "
-/-
-Yields:
-  0.0.1
--/
+#eval main <| "--verbose asm.hex".splitOn " "
+#eval main <| "--verbose asm.hex asm2.hex asm2.s".splitOn " "
+#eval main <| "--verbose asm.s asm3.hex asm3.s".splitOn " "

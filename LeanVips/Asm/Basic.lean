@@ -31,10 +31,6 @@ inductive Instr where
   | j (imm26: Bv26) : Instr
 deriving Repr, Inhabited
 
-def Prog : Type := Array Instr
-
-#check Prog
-
 namespace Instr
 open Reg
 #check Instr.i I.andi t0 t1 42
@@ -117,25 +113,31 @@ theorem j_equal_quant: ∀ (imm26), j imm26 = Instr.j imm26 :=
   by
    simp [j]
 
-def toString (instr: Instr) : String :=
-  match instr with
-  | and  rd rs rt    => s!"and  {rd.toString}, {rs.toString}, {rt.toString}"
-  | or   rd rs rt    => s!"or   {rd.toString}, {rs.toString}, {rt.toString}"
-  | add  rd rs rt    => s!"add  {rd.toString}, {rs.toString}, {rt.toString}"
-  | sub  rd rs rt    => s!"sub  {rd.toString}, {rs.toString}, {rt.toString}"
-  | slt  rd rs rt    => s!"slt  {rd.toString}, {rs.toString}, {rt.toString}"
-  | andi rt rs imm16 => s!"andi {rt.toString}, {rs.toString}, 0x{imm16.toHex}"
-  | ori  rt rs imm16 => s!"ori  {rt.toString}, {rs.toString}, 0x{imm16.toHex}"
-  | addi rt rs imm16 => s!"addi {rt.toString}, {rs.toString}, 0x{imm16.toHex}"
-  | slti rt rs imm16 => s!"slti {rt.toString}, {rs.toString}, 0x{imm16.toHex}"
-  | beq  rt rs imm16 => s!"beq  {rt.toString}, {rs.toString}, 0x{imm16.toHex}"
-  | bne  rt rs imm16 => s!"bne  {rt.toString}, {rs.toString}, 0x{imm16.toHex}"
-  | j    imm26       => s!"j    0x{imm26.toHex}"
-  | lw   rt imm16 rs => s!"lw   {rt.toString}, 0x{imm16.toHex}({rs.toString})"
-  | sw   rt imm16 rs => s!"lw   {rt.toString}, 0x{imm16.toHex}({rs.toString})"
+instance : ToString Instr where
+  toString (instr: Instr) :=
+    match instr with
+    | and  rd rs rt    => s!"and  {rd.toString}, {rs.toString}, {rt.toString}"
+    | or   rd rs rt    => s!"or   {rd.toString}, {rs.toString}, {rt.toString}"
+    | add  rd rs rt    => s!"add  {rd.toString}, {rs.toString}, {rt.toString}"
+    | sub  rd rs rt    => s!"sub  {rd.toString}, {rs.toString}, {rt.toString}"
+    | slt  rd rs rt    => s!"slt  {rd.toString}, {rs.toString}, {rt.toString}"
+    | andi rt rs imm16 => s!"andi {rt.toString}, {rs.toString}, 0x{imm16.toHex}"
+    | ori  rt rs imm16 => s!"ori  {rt.toString}, {rs.toString}, 0x{imm16.toHex}"
+    | addi rt rs imm16 => s!"addi {rt.toString}, {rs.toString}, 0x{imm16.toHex}"
+    | slti rt rs imm16 => s!"slti {rt.toString}, {rs.toString}, 0x{imm16.toHex}"
+    | beq  rt rs imm16 => s!"beq  {rt.toString}, {rs.toString}, 0x{imm16.toHex}"
+    | bne  rt rs imm16 => s!"bne  {rt.toString}, {rs.toString}, 0x{imm16.toHex}"
+    | j    imm26       => s!"j    0x{imm26.toHex}"
+    | lw   rt imm16 rs => s!"lw   {rt.toString}, 0x{imm16.toHex}({rs.toString})"
+    | sw   rt imm16 rs => s!"lw   {rt.toString}, 0x{imm16.toHex}({rs.toString})"
 
 #eval t0
 #eval t0.toString
 #eval toString (and t0 t1 t2)
-#eval (and t0 t1 t2).toString
-#eval (j 0x0000_000f).toString
+#eval toString (j 0x0000_000f)
+
+def Prog : Type := Array Instr
+#check Prog
+
+instance : ToString Prog where
+  toString (prog: Prog) := prog.foldr (λ (i:Instr) l => (toString i ++ "\n" ++ l)) ""

@@ -10,6 +10,7 @@
         "andi",
         "foldr",
         "imem",
+        "println",
         "regfile",
         "slti",
         "succint",
