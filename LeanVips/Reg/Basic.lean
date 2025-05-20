@@ -45,9 +45,6 @@ namespace Reg
 
 abbrev Regfile : Type := Vector Bv32 32
 
---instance : GetElem (Vector α n) Nat α fun _ i => i < n where
---   getElem xs i h := get xs ⟨i, h⟩
-
 def Regfile.w (rf: Regfile) (r: Reg) (v: Bv32) : Regfile :=
   rf.set r.toNat v
 

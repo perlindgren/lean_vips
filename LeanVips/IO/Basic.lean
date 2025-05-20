@@ -14,7 +14,7 @@ def progToHexString (prog: Prog) : String :=
 #eval toString (and t0 t1 t2)
 
 def p: Prog := #[
-  andi t0 t1 100,
+  andi t0 t1 (-100),
   sub  t1 t2 t0
 ]
 
