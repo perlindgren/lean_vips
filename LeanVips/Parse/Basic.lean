@@ -81,13 +81,15 @@ def parseNatBitVec (n: Nat) : Parser (BitVec n) := do
 #eval (parseNatBitVec 16).run "-0xffff" --parse err
 #eval (parseIntBitVec 16).run "-0x8000" --ok, max neg
 
+
+
 -- open LeanVips.Instr
 open Reg
 
 namespace LeanVips.Instr
 
 set_option trace.profiler true in
-@[inline]
+-- @[inline]
 def parseReg : Parser Reg := do
   let reg ←
     pstring "zero" <|>
@@ -158,6 +160,14 @@ def parseReg : Parser Reg := do
     | "ra"   => ra
     | _ => unreachable!
 
+@[inline]
+def parseParenReg  : Parser Reg := do
+  let _ ← pchar '('
+  let r ← parseReg
+  let _ ← pchar ')'
+  return r
+
+
 def parseRType : Parser Instr := do
   let op_str ←
     pstring "and" <|>
@@ -204,7 +214,7 @@ def parseIType : Parser Instr := do
       dbg_trace "-- Type I lw/sw"
       let imm16 ← parseIntBitVec 16
       let _ ← ws
-      let rs ← parseReg
+      let rs ← parseParenReg
       let op := match op_str with
       | "lw"   => I.lw
       | "sw"   => I.sw
@@ -235,7 +245,12 @@ def parseJType : Parser Instr := do
 
 def parseInstr : Parser Instr := do
   let _ ← ws
-  return ← attempt parseRType <|> parseIType <|> parseJType
+  let r ← attempt parseRType <|> parseIType <|> parseJType
+  let _ ← ws
+  return r
+
+def parseProg: Parser Prog := do
+  return ← many parseInstr
 
 #eval (parseInstr).run "and t0 t1 t2"
 #eval (parseInstr).run "or zero at v0"
@@ -245,8 +260,11 @@ def parseInstr : Parser Instr := do
 #eval (parseInstr).run "ori s7 ra 0xffff"
 #eval (parseInstr).run "beq k0 k0 0x7fff"
 #eval (parseInstr).run "bne k0 k1 -0x8000"
-#eval (parseInstr).run "lw k0 -0x8000 k1"
-#eval (parseInstr).run "sw v1 -0x8000 v0"
-
+#eval (parseInstr).run "lw k0 -0x8000(k1)"
+#eval (parseInstr).run "sw v1 -0x8000(v0)\n"
 
 #eval (parseInstr).run "j 9"
+
+#eval (parseProg).run "
+  andi t0 t1 0x20
+  slti k0 k1 -0x8000"

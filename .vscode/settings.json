@@ -10,6 +10,7 @@
         "andi",
         "foldr",
         "imem",
+        "pchar",
         "println",
         "pstring",
         "regfile",
