@@ -1,5 +1,6 @@
 import LeanVips.Asm.Basic
 import LeanVips.SerDe.Basic
+import LeanVips.Parse.Basic
 import Std.Internal.Parsec
 import Cli
 
@@ -10,10 +11,6 @@ def progToHexString (prog: Prog) : String :=
   let bin := prog.foldr (λ i l => toBv32 i :: l) []
   bin.foldr (λ (i: Bv32) l => (i.toHex ++ "\n" ++ l)) ""
 
-def p: Prog := #[
-  andi t0 t1 (-100),
-  sub  t1 t2 t0
-]
 #eval toString p
 #eval progToHexString p
 
@@ -70,14 +67,27 @@ def readHexFile (path: String) : IO Prog := do
   dbg_trace toString prog
   return
 
+def readAsmFile (path: String) : IO Prog := do
+  dbg_trace "-- reading file {path}"
+  let str : String ← IO.FS.readFile path
+  let result <- IO.ofExcept <| parseProg.run str
+  return result
+
+#eval do
+  let prog ← readAsmFile "asm.s"
+  dbg_trace toString prog
+  return
+
 open Cli
 
 def process_in_file (input: String) (verbose : Bool) : IO (Option Prog) := do
   let in_file : System.FilePath := input
   match in_file.extension with
   | .some "s" =>
-    IO.println "not yet implemented"
-    return .none
+    if verbose then dbg_trace "-- reading assembly file {input}"
+    let p ← LeanVips.Instr.readAsmFile input
+    if verbose then dbg_trace "-- read {p}"
+    return .some p
   | .some "hex" =>
     if verbose then dbg_trace "-- reading hex file {input}"
     let p ← LeanVips.Instr.readHexFile input
@@ -126,3 +136,4 @@ def main (args : List String) : IO UInt32 :=
 #eval main <| "--verbose asm.hex".splitOn " "
 #eval main <| "--verbose asm.hex asm2.hex asm2.s".splitOn " "
 #eval main <| "--verbose asm.s asm3.hex asm3.s".splitOn " "
+#eval main <| "--verbose asm3.s asm4.s".splitOn " "

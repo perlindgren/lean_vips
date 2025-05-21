@@ -167,6 +167,26 @@ def parseParenReg  : Parser Reg := do
   let _ ← pchar ')'
   return r
 
+def skipOptChar (c: Char) (it : String.Iterator): String.Iterator × Bool :=
+  if h : it.hasNext then
+    if  it.curr' h = c then
+      (it.next' h, true)
+    else
+      (it, false)
+  else
+   (it, false)
+
+@[inline]
+def optChar (c: Char) : Parser Bool := fun it =>
+  let (it, b) := skipOptChar c it
+  .success
+    it b
+
+def wsCommaWs : Parser Unit := do
+  let _ ← ws
+  let _ ← optChar ','
+  return ← ws
+
 
 def parseRType : Parser Instr := do
   let op_str ←
@@ -178,9 +198,9 @@ def parseRType : Parser Instr := do
 
   let _ ← ws
   let rd : Reg ← parseReg
-  let _ ← ws
+  let _ ← wsCommaWs
   let rs : Reg ← parseReg
-  let _ ← ws
+  let _ ← wsCommaWs
   let rt : Reg ← parseReg
 
   let op := match op_str with
@@ -206,14 +226,13 @@ def parseIType : Parser Instr := do
 
   let _ ← ws
   let rt : Reg ← parseReg
-  let _ ← ws
+  let _ ← wsCommaWs
 
   match op_str with
     | "lw"
     | "sw"   =>
       dbg_trace "-- Type I lw/sw"
       let imm16 ← parseIntBitVec 16
-      let _ ← ws
       let rs ← parseParenReg
       let op := match op_str with
       | "lw"   => I.lw
@@ -232,13 +251,13 @@ def parseIType : Parser Instr := do
         | _     => unreachable!
 
       let rs : Reg ← parseReg
-      let _ ← ws
+      let _ ← wsCommaWs
       let imm ← parse_imm
       return Instr.i op rs rt imm
 
 def parseJType : Parser Instr := do
   let _ ← pstring "j"
-  let _ ← ws
+  let _ ← wsCommaWs
   let imm26 ← parseNatBitVec 26
 
   return Instr.j imm26
@@ -266,5 +285,12 @@ def parseProg: Parser Prog := do
 #eval (parseInstr).run "j 9"
 
 #eval (parseProg).run "
-  andi t0 t1 0x20
-  slti k0 k1 -0x8000"
+  ori t0, t1, 0x20
+  andi t0, t1 0x20
+  slti k0 k1          , -0x8000
+  lw   ra 3(t0)
+  sw   t0, 4(sp)
+  add  s0, s1, s2
+  or   at s1 , s2
+  sub at,s1  s2
+  "
