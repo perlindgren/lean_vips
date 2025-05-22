@@ -26,8 +26,8 @@ inductive I where
 deriving Repr, Inhabited
 
 inductive Instr where
-  | i (instr: I) (rs rt: Reg) (imm: Bv16) : Instr
-  | r (instr: R) (rs rt rd: Reg) : Instr
+  | i (i_op: I) (rs rt: Reg) (imm: Bv16) : Instr
+  | r (r_op: R) (rs rt rd: Reg) : Instr
   | j (imm26: Bv26) : Instr
 deriving Repr, Inhabited
 

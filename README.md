@@ -51,7 +51,7 @@ Lean will show the result of evaluating the `eval` definition (function) as a tu
 Looking at the arguments of `eval imem 9 0x00 rf dm`. 
 - `imem`is the instruction memory definition (our program to execute)
   ```
-  bne  t2 zero 4,    --00 -- if t2 != 0 brach to 14
+  bne  t2 zero 4,    --00 -- if t2 != 0 branch to 14
   addi t0 t0 0x20,   --04 -- t0 <- 0x20
   addi t1 t0 (-1),   --08 -- t1 <- 0x1f
   slt  t2 t1 t0,     --0c -- t2 <- 0x1f < 0x20
@@ -59,6 +59,7 @@ Looking at the arguments of `eval imem 9 0x00 rf dm`.
   slt  t3 t0 t1,     --14 -- t3 <- 0x20 < 0x1f
   andi t4 t1 0xF00F, --18 -- t4 <- 0x0000_000f
   ori  t5 t1 0xF00F  --20 -- t5 <- 0x0000_f00f
+                     --24 -- index out of bounds
   ```
 - `9`is the number of simulation steps we want to run (in this case 9).
 - `0x00`is the initial value for the `pc` register (the instruction memory starts at address 0x00).
@@ -106,6 +107,10 @@ This will result in an error (`index out of bounds`), as trying to read the inst
 
 Already now you can use `lean_vips`, as a way to write and simulate VIPS assembly programs, without knowing exactly how the modelling of the VIPS in Lean is implemented.
 
+You will find additional examples in the `LeanVips/Basic.lean`.
+
+The `imem_sum`shows an imperative version of arithmetic summation. 
+
 Notice here, the complete definition of VIPS in Lean is less than 100 lines of code (the rest of the code is examples and proofs), Lean as a programming language allows for succint "lean" implementations.
 
 ## The VIPS model in Lean
@@ -151,8 +156,8 @@ inductive I where
 deriving Repr, BEq
 
 inductive Instr where
-  | i (instr: I) (rs rt: Reg) (imm: Bv16) : Instr
-  | r (instr: R) (rs rt rd: Reg) : Instr
+  | i (i_op: I) (rs rt: Reg) (imm: Bv16) : Instr
+  | r (r_op: R) (rs rt rd: Reg) : Instr
   | j (imm26: Bv26) : Instr
 deriving Repr, Inhabited
 ```
