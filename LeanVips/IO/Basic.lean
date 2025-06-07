@@ -4,12 +4,12 @@ import LeanVips.Parse.Basic
 import Std.Internal.Parsec
 import Cli
 
-namespace LeanVips.Instr
 open Reg
+open LeanVips.Instr
 
 def progToHexString (prog: Prog) : String :=
   let bin := prog.foldr (λ i l => toBv32 i :: l) []
-  bin.foldr (λ (i: Bv32) l => (i.toHex ++ "\n" ++ l)) ""
+  bin.foldr (λ (i: Bv32) l => ("0x" ++ i.toHex ++ "\n" ++ l)) ""
 
 #eval toString p
 #eval progToHexString p
@@ -25,19 +25,7 @@ def progToBinFile (path: String) (prog: Prog) := do
 open Std.Internal.Parsec
 open Std.Internal.Parsec.String
 
-@[inline]
-def parseHex : Parser Nat := do
-  return (← many1 hexDigit).reverse.foldr toHex 0
-  where toHex c acc : Nat :=
-    acc * 16 +
-    if ('0' ≤ c ∧ c ≤ '9') then
-      c.toNat - '0'.toNat
-    else if ('a' ≤ c ∧ c ≤ 'f') then
-      10 + c.toNat - 'a'.toNat
-    else
-      10 + c.toNat - 'A'.toNat
-
-#eval parseHex.run "ab"
+#eval parseHex.run "0xab"
 
 @[inline]
 def parseHex! (s: String) : Nat :=
@@ -46,7 +34,7 @@ def parseHex! (s: String) : Nat :=
   | _ => panic "parsing failed, expected hex value"
 
 @[inline]
-def instrOfNat (s: String) : Instr :=
+def instrOfNat (s: String) : LeanVips.Instr :=
   fromBv32 (parseHex! s)
 
 def readHexFile (path: String) : IO Prog := do
@@ -85,12 +73,12 @@ def process_in_file (input: String) (verbose : Bool) : IO (Option Prog) := do
   match in_file.extension with
   | .some "s" =>
     if verbose then dbg_trace "-- reading assembly file {input}"
-    let p ← LeanVips.Instr.readAsmFile input
+    let p ← readAsmFile input
     if verbose then dbg_trace "-- read {p}"
     return .some p
   | .some "hex" =>
     if verbose then dbg_trace "-- reading hex file {input}"
-    let p ← LeanVips.Instr.readHexFile input
+    let p ← readHexFile input
     if verbose then dbg_trace "-- read {p}"
     return .some p
   | _ =>
@@ -120,7 +108,7 @@ def vipsCmd : Cmd := `[Cli|
   "`vips` executable model of a subset of the MIPS32 ISA."
 
   FLAGS:
-    verbose;                    "`--verbose` output."
+    verbose;                   "`--verbose` output."
 
   ARGS:
     input : String;            "<input.{hex|s}> input file path. .hex for hex input, .s for assembly"

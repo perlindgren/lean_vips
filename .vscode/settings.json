@@ -4,6 +4,7 @@
         "Dmem",
         "Funct",
         "Greencard",
+        "Hoare",
         "Repr",
         "Shamt",
         "addi",

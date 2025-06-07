@@ -274,11 +274,68 @@ Formally, the assembly representation and the binary machine code forms a biject
 theorem tofrom (i: Instr) : fromBv32 (toBv32 i) = i 
 ```
 
-Future work: 
-- The current implementation does not implement file operations.
-- The proof could be simplified by higher degree of automation.
-
 Examples of use are found in [LeanVips/Basic.lean](./LeanVips/Basic.lean).
+
+## CLI
+
+As a demonstration of Lean being able to produce executables, a CLI for converting `vips` programs, between `.hex` and `.s` (assembly) representation is provided in  [LeanVips/IO/Basic.lean](./LeanVips/IO/Basic.lean).
+
+To generate an executable:
+
+```shell
+lake build
+```
+
+When loading the Lean project, a two instruction program is serialized to `asm.s` and  `asm.hex`:
+
+```shell
+andi t0, t1, 0xff9c
+sub  t1, t2, t0
+```
+
+```shell
+0x3128ff9c
+0x01484822
+```
+
+As part of loading the Lean project, the CLI tool is invoked, converting the freshly generated `asm.s` and `asm.hex` files, generating `asm2.s`, `asm3.s`, `asm4.s`, `asm2.hex`, and `asm3.hex`.
+
+To get the CLI help, you can run:
+
+```shell
+.lake/build/bin/vips  --help
+```
+
+To convert from hex to assembly, run:
+
+```shell
+.lake/build/bin/vips asm.hex asm_new.s
+```
+
+And back to hex:
+
+```shell
+.lake/build/bin/vips asm_new.s asm_new.hex 
+```
+
+The tool can generate several output files (based on the same input file):
+
+```shell
+.lake/build/bin/vips asm_new.s asm_new2.hex asm_new2.s
+```
+
+Notice, while the serialization between `BitVec` and `Instr` representations have been formalized and their conversions proven 1-1, the textual parsing, ASCII emission, and file IO currently remains unproven.
+
+## Future work
+
+The `lean_vips` project is currently a vehicle for learning and experimenting with various features of the Lean language and ITP.
+
+Future work might improve and extend its capabilities, e.g.:
+
+- CI testing.
+- The proofs could be simplified by higher degree of automation.
+- Higher level deductive reasoning using upcoming Hoare Logic library.
+
 
 
 
