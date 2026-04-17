@@ -51,10 +51,10 @@ def parseNat : Parser Nat := do
 #check Parser
 
 
-def parseDummy  :  Parser Nat := do
-  let n ← parseDec
-  let n2 ← parseDec
-  return n + 5
+-- def parseDummy  :  Parser Nat := do
+--   let n ← parseDec
+--   let n2 ← parseDec
+--   return n + 5
 
 
 
