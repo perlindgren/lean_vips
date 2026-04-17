@@ -34,35 +34,54 @@ def parseInt : Parser Int := do
 def parseNat : Parser Nat := do
   return ← attempt parseHex <|> parseDec
 
-@[inline]
-def curr_it : Parser String.Iterator := fun it =>
-  .success it it
+-- @[inline]
+-- def curr_it : Parser := fun it =>
+--     .success it it
 
-@[inline]
-def extract_last (old_it : String.Iterator) : Parser String := fun it =>
-  .success it (old_it.extract it)
+-- @[inline]
+-- def extract_last (old_it : String) : Parser String := fun it =>
+--    .success it (old_it.extract it)
+
+
+
+-- @[inline]
+-- def dummy : ParseResult a b := fun it =>
+--   .success it
+
+#check Parser
+
+
+def parseDummy  :  Parser Nat := do
+  let n ← parseDec
+  let n2 ← parseDec
+  return n + 5
+
+
+
 
 @[inline]
 def parseIntBitVec (n: Nat) : Parser (BitVec n) := do
-   let it ← curr_it
-   let i ← parseInt
-   let bv : BitVec n := i
-   dbg_trace "i={i}, bv={bv}"
-   if (i != bv.toInt) then
-     let s ← extract_last it
-     panic s!"literal {s} too large to fit in signed {n} bits"
-   return bv
+  -- let x ← (fun it  d => .success it d)
+  let i : Int ← parseInt
+  let bv : BitVec n := i
+  dbg_trace "i={i}, bv={bv}"
+  if (i != bv.toInt) then
+--      let s ← extract_last it
+--      panic s!"literal {s} too large to fit in signed {n} bits"
+    fail s!"literal {i} is too large to fit in signed {n} bits"
+  return bv
 
 @[inline]
 def parseNatBitVec (n: Nat) : Parser (BitVec n) := do
-   let it ← curr_it
-   let i ← parseNat
-   let bv : BitVec n := i
-   dbg_trace "i={i}, bv={bv}"
-   if (i != bv.toNat) then
-     let s ← extract_last it
-     panic s!"literal {s} too large to fit in unsigned {n} bits"
-   return bv
+    -- let it ← curr_it
+    let i ← parseNat
+    let bv : BitVec n := i
+    dbg_trace "i={i}, bv={bv}"
+    if (i != bv.toNat) then
+      -- let s ← extract_last it
+      --panic s!"literal {s} too large to fit in unsigned {n} bits"
+      fail s!"literal is too large to fit in unsigned {n} bits"
+    return bv
 
 #eval parseInt.run "78"
 #eval parseInt.run "-4"
@@ -70,18 +89,18 @@ def parseNatBitVec (n: Nat) : Parser (BitVec n) := do
 #eval parseInt.run "-0x12"
 #eval parseNat.run "-0x12"
 
-#eval (parseIntBitVec 16).run "0x1234"  --ok
-#eval (parseNatBitVec 16).run "0x1234"  --ok
-#eval (parseIntBitVec 16).run "-0x1234" --ok
-#eval (parseNatBitVec 16).run "-0x1234" --parse err
-#eval (parseIntBitVec 16).run "0x12345" --error, too large
+#eval (parseIntBitVec 16).run "0x7fff"  --ok
+#eval (parseNatBitVec 16).run "0x7fff"  --ok
+#eval (parseIntBitVec 16).run "0x8000"  --error, too large
+#eval (parseNatBitVec 16).run "0x8000"  --ok
+
+#eval (parseIntBitVec 16).run "-0x8000" --ok
+#eval (parseNatBitVec 16).run "-0x8000" --parse err
+#eval (parseIntBitVec 16).run "-0x8001" --error, too large
+
 #eval (parseIntBitVec 16).run "0xffff"  --error, too large
 #eval (parseNatBitVec 16).run "0xffff"  --ok
-#eval (parseIntBitVec 16).run "-0xffff" --error, too large
-#eval (parseNatBitVec 16).run "-0xffff" --parse err
-#eval (parseIntBitVec 16).run "-0x8000" --ok, max neg
-
-
+#eval (parseNatBitVec 16).run "0x1ffff" --error, too large
 
 -- open LeanVips.Instr
 open Reg
@@ -167,26 +186,26 @@ def parseParenReg  : Parser Reg := do
   let _ ← pchar ')'
   return r
 
-def skipOptChar (c: Char) (it : String.Iterator): String.Iterator × Bool :=
-  if h : it.hasNext then
-    if  it.curr' h = c then
-      (it.next' h, true)
-    else
-      (it, false)
-  else
-   (it, false)
+-- def skipOptChar (c: Char) (it : String.Legacy.Iterator): String.Legacy.Iterator × Bool :=
+--   if h : it.hasNext then
+--     if  it.curr' h = c then
+--       (it.next' h, true)
+--     else
+--       (it, false)
+--   else
+--    (it, false)
 
-@[inline]
-def optChar (c: Char) : Parser Bool := fun it =>
-  let (it, b) := skipOptChar c it
-  .success
-    it b
+-- @[inline]
+-- def optChar (c: Char) : Parser Bool := fun it : String.Legacy.Iterator =>
+--   let (it, b) := skipOptChar c it
+--   .success
+--     it b
 
 def wsCommaWs : Parser Unit := do
   let _ ← ws
-  let _ ← optChar ','
-  return ← ws
-
+  if (← peek!) == ',' then
+    skip
+  return <- ws
 
 def parseRType : Parser Instr := do
   let op_str ←
@@ -271,18 +290,20 @@ def parseInstr : Parser Instr := do
 def parseProg: Parser Prog := do
   return ← many parseInstr
 
-#eval (parseInstr).run "and t0 t1 t2"
-#eval (parseInstr).run "or zero at v0"
-#eval (parseInstr).run "add zero at v0"
+#eval (parseInstr).run "and t0 t1 t2"         --ok
+#eval (parseInstr).run "or zero at v0"        --ok
+#eval (parseInstr).run "add zero at v0"       --ok
 
-#eval (parseInstr).run "andi t0 t1 0x20"
-#eval (parseInstr).run "ori s7 ra 0xffff"
-#eval (parseInstr).run "beq k0 k0 0x7fff"
-#eval (parseInstr).run "bne k0 k1 -0x8000"
-#eval (parseInstr).run "lw k0 -0x8000(k1)"
-#eval (parseInstr).run "sw v1 -0x8000(v0)\n"
+#eval (parseInstr).run "andi t0 t1 0x20"      --ok
+#eval (parseInstr).run "ori s7 ra 0xffff"     --ok
+#eval (parseInstr).run "beq k0 k0 0x7fff"     --ok
+#eval (parseInstr).run "bne k0 k1 -0x8000"    --ok
+#eval (parseInstr).run "lw k0 -0x8000(k1)"    --ok
+#eval (parseInstr).run "sw v1 -0x8000(v0)"    --ok
 
-#eval (parseInstr).run "j 9"
+#eval (parseInstr).run "j 0x3ffffff"          --ok
+#eval (parseInstr).run "j 0x4ffffff"          --error, too large
+
 
 #eval (parseProg).run "
   ori t0, t1, 0x20

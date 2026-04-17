@@ -5,6 +5,8 @@ namespace LeanVips
 abbrev Op   : Type := BitVec 6
 abbrev Funct: Type := BitVec 6
 abbrev Shamt: Type := BitVec 5
+abbrev Imm16: Type := BitVec 16
+abbrev Imm26: Type := BitVec 26
 
 inductive R where
   | and : R
@@ -26,30 +28,32 @@ inductive I where
 deriving Repr, Inhabited
 
 inductive Instr where
-  | i (i_op: I) (rs rt: Reg) (imm: Bv16) : Instr
+  | i (i_op: I) (rs rt: Reg) (imm: Imm16) : Instr
   | r (r_op: R) (rs rt rd: Reg) : Instr
-  | j (imm26: Bv26) : Instr
+  | j (imm26: Imm26) : Instr
 deriving Repr, Inhabited
 
 namespace Instr
 open Reg
 #check Instr.i I.andi t0 t1 42
 
+#check j
 -- Instruction assembly shorthands
 @[match_pattern] def and  (rd rs rt: Reg) : Instr := r .and rs rt rd
 @[match_pattern] def or   (rd rs rt: Reg) : Instr := r .or  rs rt rd
 @[match_pattern] def add  (rd rs rt: Reg) : Instr := r .add rs rt rd
 @[match_pattern] def sub  (rd rs rt: Reg) : Instr := r .sub rs rt rd
 @[match_pattern] def slt  (rd rs rt: Reg) : Instr := r .slt rs rt rd
-@[match_pattern] def andi (rt rs: Reg) (imm16: Bv16): Instr := i .andi rs rt imm16
-@[match_pattern] def ori  (rt rs: Reg) (imm16: Bv16): Instr := i .ori  rs rt imm16
-@[match_pattern] def addi (rt rs: Reg) (imm16: Bv16): Instr := i .addi rs rt imm16
-@[match_pattern] def slti (rt rs: Reg) (imm16: Bv16): Instr := i .slti rs rt imm16
-@[match_pattern] def lw   (rt: Reg)    (imm16: Bv16) (rs: Reg): Instr := i .lw   rs rt imm16
-@[match_pattern] def sw   (rt: Reg)    (imm16: Bv16) (rs: Reg): Instr := i .sw   rs rt imm16
-@[match_pattern] def beq  (rt rs: Reg) (imm16: Bv16): Instr := i .beq  rs rt imm16
-@[match_pattern] def bne  (rt rs: Reg) (imm16: Bv16): Instr := i .bne  rs rt imm16
--- @[match_pattern] def j                 (imm26: Bv26): Instr := .j            imm26
+@[match_pattern] def andi (rt rs: Reg) (imm16: Imm16): Instr := i .andi rs rt imm16
+@[match_pattern] def ori  (rt rs: Reg) (imm16: Imm16): Instr := i .ori  rs rt imm16
+@[match_pattern] def addi (rt rs: Reg) (imm16: Imm16): Instr := i .addi rs rt imm16
+@[match_pattern] def slti (rt rs: Reg) (imm16: Imm16): Instr := i .slti rs rt imm16
+@[match_pattern] def lw   (rt: Reg)    (imm16: Imm16) (rs: Reg): Instr := i .lw   rs rt imm16
+@[match_pattern] def sw   (rt: Reg)    (imm16: Imm16) (rs: Reg): Instr := i .sw   rs rt imm16
+@[match_pattern] def beq  (rt rs: Reg) (imm16: Imm16): Instr := i .beq  rs rt imm16
+@[match_pattern] def bne  (rt rs: Reg) (imm16: Imm16): Instr := i .bne  rs rt imm16
+-- @[match_pattern] def j                 (imm26: Imm26): Instr := .j            imm26
+-- Already defined, as it is a variant with a single constructor
 
 #check andi t1 t1 42
 
@@ -111,7 +115,7 @@ theorem slt_equal_quant: ∀ (rs rt rd), slt rd rs rt = Instr.r R.slt rs rt rd :
 
 theorem j_equal_quant: ∀ (imm26), j imm26 = Instr.j imm26 :=
   by
-   simp [j]
+   simp
 
 instance : ToString Instr where
   toString (instr: Instr) :=
@@ -151,3 +155,6 @@ def p: Prog := #[
 ]
 
 #eval toString p
+
+-- #eval show IO Unit from do
+--   IO.println "hello"

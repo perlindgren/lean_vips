@@ -133,7 +133,8 @@ def toString (r : Reg) : String :=
 
 #eval s!"{t0.toString}"
 
-#eval
-  for r in [0:32] do
+#eval show IO Unit from do
+  for r in 0...=(31 : BitVec 5) do
     let reg: Reg := r
-    dbg_trace "{reg.toString}";
+    -- dbg_trace "{reg.toString}";
+    IO.println s!"{reg.toString}";

@@ -66,7 +66,7 @@ theorem prog1b : ∀ (rf : Regfile) (dm: DMem),
     let (rf', _dm', _pc') := eval imem_p1 1 0x00 rf dm
     rf'[t0] = rf[t0] + 0x20
   := by
-    simp [eval, instr_eval, IMem.r, imem_p1, Regfile.w, Regfile.r, t0,zero, Vector.get]
+    simp [eval, instr_eval, IMem.r, imem_p1, Regfile.w, Regfile.r, t0,zero]
 
 -- a bit more complex, here we first update t1 and based on that t2
 def imem_p2 :=
@@ -86,7 +86,7 @@ theorem prog2 : ∀ (rf : Regfile) (dm: DMem),
 -- this should now be initial t0 + 0x40
 theorem prog2b : ∀ (rf : Regfile) (dm: DMem),
     let (rf', _dm', _pc') := eval imem_p2 2 0x00 rf dm
-    rf'[t2.toNat] = (rf[t0.toNat] + 0x40)
+    rf'[t2] = (rf[t0] + 0x40)
   := by
     simp [eval, imem_p2, instr_eval, IMem.r, Regfile.w, Regfile.r, t0, t1, t2, zero]
     bv_decide
@@ -142,7 +142,7 @@ def imem_sum :=
 
 -- set_option maxHeartbeats 100_000
 
-theorem prog_sum : ∀ (rf : Regfile) (dm: DMem),
+theorem _prog_sum : ∀ (rf : Regfile) (dm: DMem),
     let (rf', _dm', _pc') := eval imem_sum 26 0x00 rf dm
     rf[a0] = 3 -> rf'[t1] = 1+2+3
   := by
@@ -157,7 +157,7 @@ theorem prog_sum : ∀ (rf : Regfile) (dm: DMem),
 --   rf[a0] = n
 --   sum n = (sum n: Bv32), that is the result fits 32 bits
 --   pc = 0x20, the program has run to end
-theorem prog_sum_proof : ∀ (rf : Regfile) (dm: DMem) (n f: Nat),
+theorem _prog_sum_proof : ∀ (rf : Regfile) (dm: DMem) (n f: Nat),
     let (rf', dm', pc') := eval imem_sum f 0x00 rf dm
     rf[a0] = n -> sum n = (sum n: Bv32) -> pc' = 0x20 -> (rf'[t1] = sum n)
   := by

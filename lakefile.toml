@@ -9,7 +9,7 @@ name = "LeanVips"
 [[require]]
 name = "Cli"
 git = "https://github.com/leanprover/lean4-cli"
-rev = "v4.16.0"
+rev = "v4.29.0"
 
 [[lean_exe]]
 name = "vips"
