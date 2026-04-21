@@ -40,12 +40,13 @@ def instrOfNat (s: String) : LeanVips.Instr :=
 def readHexFile (path: String) : IO Prog := do
   dbg_trace "-- reading file {path}"
   let f ← IO.FS.readFile path
-  let il := f.split (·.isWhitespace)
+  let il := (f.split (·.isWhitespace))
+  let il := il.map (λ s => s.copy)
   let il := il.filter (λ s => s !="")
-
-  dbg_trace il
+  let str : String := il.fold String.append ""
+  dbg_trace s!"{str}"
   let prog := (il.map instrOfNat).toArray
-  dbg_trace "-- prog read \n{prog}"
+  dbg_trace s!"-- prog read \n{prog}"
   return prog
 
 #eval progToBinFile "asm.hex" p
@@ -56,7 +57,7 @@ def readHexFile (path: String) : IO Prog := do
   return
 
 def readAsmFile (path: String) : IO Prog := do
-  dbg_trace "-- reading file {path}"
+  dbg_trace s!"-- reading file {path}"
   let str : String ← IO.FS.readFile path
   let result <- IO.ofExcept <| parseProg.run str
   return result
