@@ -8,6 +8,8 @@ abbrev Shamt: Type := BitVec 5
 abbrev Imm16: Type := BitVec 16
 abbrev Imm26: Type := BitVec 26
 
+abbrev Label: Type := Option String
+
 inductive R where
   | and : R
   | or  : R
@@ -140,21 +142,29 @@ instance : ToString Instr where
 #eval toString (and t0 t1 t2)
 #eval toString (j 0x0000_000f)
 
-def Prog : Type := Array Instr
+def Prog : Type := Array (Label × Instr)
 #check Prog
 
 instance : ToString Prog where
-  toString (prog: Prog) := prog.foldr (λ (i:Instr) l => (toString i ++ "\n" ++ l)) ""
+  toString (prog: Prog) :=
+    prog.foldr (λ i l =>
+      match i.fst with
+      | none => s!"▸\t{i.snd}\n{l}"
+      | some label => s!"{label}:\n\t{i.snd}\n{l}"
+    )
+    ""
 
 #eval zero.toString
 #eval toString (and t0 t1 t2)
 
 def p: Prog := #[
-  andi t0 t1 (-100),
-  sub  t1 t2 t0
+  (none, andi t0 t1 (-100)),
+  (some "loop", sub  t1 t2 t0)
 ]
 
 #eval toString p
+
+
 
 -- #eval show IO Unit from do
 --   IO.println "hello"

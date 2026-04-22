@@ -4,7 +4,6 @@ import LeanVips.Asm.Basic
 open Std.Internal.Parsec
 open Std.Internal.Parsec.String
 
-
 @[inline]
 def parseDec : Parser Nat := do
   return (← digits)
@@ -48,7 +47,7 @@ def parseNat : Parser Nat := do
 -- def dummy : ParseResult a b := fun it =>
 --   .success it
 
-#check Parser
+-- #check Parser
 
 
 -- def parseDummy  :  Parser Nat := do
@@ -201,6 +200,44 @@ def parseParenReg  : Parser Reg := do
 --   .success
 --     it b
 
+def isValidLabelFirstChar (c: Char) : Bool :=
+  c >= 'a' && c <= 'z' ||
+  c >= 'A' && c <= 'Z' ||
+  c = '_'
+
+@[inline]
+def parseLabelFirstChar : Parser Char := attempt do
+  let c ← any
+  if isValidLabelFirstChar c then return c else fail s!"label char expected"
+
+def isValidLabelChar (c: Char) : Bool :=
+  isValidLabelFirstChar c ||
+  c >= '0' && c <= '9'
+
+#eval isValidLabelChar 'a' -- true
+#eval isValidLabelChar 'Z' -- true
+#eval isValidLabelChar '1' -- true
+#eval isValidLabelChar '*' -- true
+
+@[inline]
+def parseLabelChar : Parser Char := attempt do
+  let c ← any
+  if isValidLabelChar c then return c else fail s!"label char expected"
+
+#eval parseLabelChar.run "a"
+#eval parseLabelChar.run "*"
+
+def parseLabel : Parser String := do
+  let fst <- parseLabelFirstChar
+  let s ← manyChars parseLabelChar
+  let _ ← pchar ':'
+  return fst.toString ++ s
+
+#eval parseLabel.run "a:" -- ok
+#eval parseLabel.run "_A0_z:" -- ok
+#eval parseLabel.run ":A0_z:" -- err
+#eval parseLabel.run "9A0_z:" -- err
+
 def wsCommaWs : Parser Unit := do
   let _ ← ws
   if (← peek!) == ',' then
@@ -232,7 +269,7 @@ def parseRType : Parser Instr := do
 
   return Instr.r op rs rt rd
 
-def parseIType : Parser Instr := do
+def parseIType : Parser Instr:= do
   let op_str ←
     pstring "andi" <|>
     pstring "ori"  <|>
@@ -281,29 +318,50 @@ def parseJType : Parser Instr := do
 
   return Instr.j imm26
 
-def parseInstr : Parser Instr := do
+def parseToNone : Parser (Option String) := do
+  return none
+
+def parseLabelToOpt : Parser (Option String) := do
+  let l ← parseLabel
+  return some l
+
+#eval parseLabelToOpt.run "a:" -- ok
+#eval parseLabelToOpt.run "a"  -- err
+
+def parseLabelOption : Parser (Option String) := do
+  return ← attempt parseLabelToOpt <|> parseToNone
+
+#eval parseLabelOption.run "a:" -- some
+#eval parseLabelOption.run "b"  -- ok
+
+def parseInstr : Parser (Option String × Instr) := do
+  let _ ← ws
+  let l ← parseLabelOption
+  dbg_trace "label {l}"
   let _ ← ws
   let r ← attempt parseRType <|> parseIType <|> parseJType
   let _ ← ws
-  return r
+  return (l, r)
+
+#eval (parseInstr).run "and t0 t1 t2"         -- ok
+#eval (parseInstr).run "or zero at v0"        -- ok
+#eval (parseInstr).run "add zero at v0"       -- ok
+
+#eval (parseInstr).run "andi t0 t1 0x20"      -- ok
+#eval (parseInstr).run "ori s7 ra 0xffff"     -- ok
+#eval (parseInstr).run "beq k0 k0 0x7fff"     -- ok
+#eval (parseInstr).run "bne k0 k1 -0x8000"    -- ok
+#eval (parseInstr).run "lw k0 -0x8000(k1)"    -- ok
+#eval (parseInstr).run "sw v1 -0x8000(v0)"    -- ok
+
+#eval (parseInstr).run "j 0x3ffffff"          -- ok
+#eval (parseInstr).run "j 0x4ffffff"          -- error, too large
+
+#eval (parseInstr).run "l: and t0 t1 t2"      -- label ok
+
 
 def parseProg: Parser Prog := do
   return ← many parseInstr
-
-#eval (parseInstr).run "and t0 t1 t2"         --ok
-#eval (parseInstr).run "or zero at v0"        --ok
-#eval (parseInstr).run "add zero at v0"       --ok
-
-#eval (parseInstr).run "andi t0 t1 0x20"      --ok
-#eval (parseInstr).run "ori s7 ra 0xffff"     --ok
-#eval (parseInstr).run "beq k0 k0 0x7fff"     --ok
-#eval (parseInstr).run "bne k0 k1 -0x8000"    --ok
-#eval (parseInstr).run "lw k0 -0x8000(k1)"    --ok
-#eval (parseInstr).run "sw v1 -0x8000(v0)"    --ok
-
-#eval (parseInstr).run "j 0x3ffffff"          --ok
-#eval (parseInstr).run "j 0x4ffffff"          --error, too large
-
 
 #eval (parseProg).run "
   ori t0, t1, 0x20

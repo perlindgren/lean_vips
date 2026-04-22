@@ -8,7 +8,7 @@ open Reg
 open LeanVips.Instr
 
 def progToHexString (prog: Prog) : String :=
-  let bin := prog.foldr (λ i l => toBv32 i :: l) []
+  let bin := prog.foldr (λ i l => toBv32 i.snd :: l) []
   bin.foldr (λ (i: Bv32) l => ("0x" ++ i.toHex ++ "\n" ++ l)) ""
 
 #eval toString p
@@ -41,11 +41,10 @@ def readHexFile (path: String) : IO Prog := do
   dbg_trace "-- reading file {path}"
   let f ← IO.FS.readFile path
   let il := (f.split (·.isWhitespace))
-  let il := il.map (λ s => s.copy)
-  let il := il.filter (λ s => s !="")
-  let str : String := il.fold String.append ""
-  dbg_trace s!"{str}"
-  let prog := (il.map instrOfNat).toArray
+  let il := il.map (λ s => s.copy) -- turn String.slice to String
+  let il := il.filter (λ s => s !="") -- remove empty lines
+  let il := (il.map instrOfNat) -- disassemble instruction
+  let prog := (il.map (λ s => (none, s))).toArray
   dbg_trace s!"-- prog read \n{prog}"
   return prog
 
