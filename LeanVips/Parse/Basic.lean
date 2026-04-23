@@ -363,13 +363,29 @@ def parseInstr : Parser (Option String × Instr) := do
 def parseProg: Parser Prog := do
   return ← many parseInstr
 
-#eval (parseProg).run "
-  ori t0, t1, 0x20
+#eval parseProg.run "
+  ori  t0, t1, 0x20
   andi t0, t1 0x20
   slti k0 k1          , -0x8000
   lw   ra 3(t0)
   sw   t0, 4(sp)
   add  s0, s1, s2
   or   at s1 , s2
-  sub at,s1  s2
+  sub  at,s1  s2
   "
+
+#eval do
+  let p ← parseProg.run "
+start:
+  ori  t0, t1, 0x20
+  andi t0, t1 0x20
+  slti k0 k1          , -0x8000
+  lw   ra 3(t0)
+  sw   t0, 4(sp)
+  add  s0, s1, s2
+  or   at s1 , s2
+  sub  at,s1  s2
+end:
+  beq  t0, t0, -1
+  "
+  dbg_trace "{p}"

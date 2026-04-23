@@ -248,7 +248,6 @@ theorem tofrom (i: Instr) : fromBv32 (toBv32 i) = i := by
       simp at heq
 
   . rename_i imm -- j type instruction
-    simp [toBv32]
     unfold fromBv32
     have jt : ∀ (x: BitVec 6), (BitVec.setWidth 6 ((x ++ imm) >>> 26) = x) := by
       bv_decide
