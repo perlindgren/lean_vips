@@ -93,7 +93,8 @@ instance : GetElem Regfile Reg Bv32 (fun _ _ => True) where
       assumption
 
 
-def toString (r : Reg) : String :=
+instance : ToString Reg where
+  toString (r: Reg) :=
   match r with
   | zero => "zero"
   | at'  => "at"
@@ -129,12 +130,28 @@ def toString (r : Reg) : String :=
   | ra   => "ra"
   | _    => unreachable! -- can we get rid of this
 
-#eval zero.toString
+def rf:  Regfile := Vector.replicate 32 0
 
-#eval s!"{t0.toString}"
+#eval (rf.foldr (λ e acc => (acc.fst + 1, acc.snd ++ s!"{acc.fst} ▸ {e}" ++ "\n" ))) (0, "")
+
+instance : ToString Regfile where
+  toString (rf: Regfile) :=
+    (rf.foldl (λ acc e  =>
+      (acc.fst + 1, acc.snd ++ s!"{(acc.fst:Reg)} ▸ {e}" ++ "\n"))
+      (0, "")).snd
+
+
+#eval do
+  let rf: Regfile := Vector.replicate 32 0
+  let rf := rf.w t0 5
+  dbg_trace "{rf}"
+
+#eval s!"{t0}"
+
+#eval s!"r{ra.toNat}"
 
 #eval show IO Unit from do
   for r in 0...=(31 : BitVec 5) do
     let reg: Reg := r
-    -- dbg_trace "{reg.toString}";
-    IO.println s!"{reg.toString}";
+    -- dbg_trace "{reg}";
+    IO.println s!"{reg}";

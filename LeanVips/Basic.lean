@@ -176,18 +176,18 @@ def dm_data : DMem := #[
   4, -- 0c
 ]
 
-def imem_dm := #[
-  lw t0   0x0 zero   ,-- lw t0 0x0(zero)
-  lw t1   0x4 zero   ,--
-  lw t2   0x8 zero   ,--
-  lw t3   0xc zero   ,--
+def imem_dm : IMem := #[
+  lw t0   0x0 zero   , -- lw t0 0x0(zero)
+  lw t1   0x4 zero   , --
+  lw t2   0x8 zero   , --
+  lw t3   0xc zero   , --
 
-  sw t0   0xc zero   ,-- sw t0 0x0(zero)
-  sw t1   0x8 zero   ,--
-  sw t2   0x4 zero   ,--
-  sw t3   0x0 zero   ,--
+  sw t3   0x0 zero   , -- sw t3 0x0(zero)
+  sw t2   0x4 zero   , --
+  sw t1   0x8 zero   , --
+  sw t0   0xc zero   , --
 
-  beq zero zero (-1) ,-- loop:   b loop:
+  beq zero zero (-1) , -- loop:   b loop:
 ]
 
 #eval
